@@ -1,13 +1,47 @@
 # Phase 3 — Rhetorical Role Prediction
 
-**Window:** <dates> · **Metric:** <primary> (secondary: <…>) · **Data:** `Phase_N_<…>/`
+**Window:** 12–16 Oct 2026 · **Metric:** Macro-F1 (secondary: Macro-P, Macro-R) · **Data:** `Phase_3_RR/` · **Min submissions:** 4
 
 ## Task & output format
 <one paragraph + the prediction.json shape>
 
 ## Data analysis
-- Sizes (train/dev/test), label distribution, document/sentence length stats
-- Observations that shaped the design (imbalance, long docs, domain differences)
+Reproduce with `python data_analysis.py <Phase_3_RR dir> ../../tokenizer/tokenizer.json`.
+
+**Format.** Train/dev: list of `{id, text: [sentences], labels: [roles]}`. Test: object `{doc_id: [sentences]}`.
+Submission: one `prediction.json` covering all 10 test docs (5 CL + 5 IT), `{doc_id: [one label per sentence]}`.
+
+| Split | Docs | Sentences | Sents/doc (med / max) | BPE tokens/sent (med / p95 / p99 / max) | Tokens/doc (med / max) |
+|---|---|---|---|---|---|
+| CL train | 40 | 10,593 | 120 / 1,816 | 32 / 85 / 140 / 859 | 5,130 / 70,068 |
+| CL dev | 5 | 1,396 | 184 / 848 | 34 / 87 / 162 / 410 | 7,595 / 34,652 |
+| IT train | 40 | 6,252 | 126 / 442 | 33 / 101 / 187 / 1,185 | 5,504 / 19,706 |
+| IT dev | 5 | 746 | 120 / 382 | 32 / 99 / 167 / 317 | 4,465 / 15,029 |
+| CL test | 5 | 1,339 | 114 / 942 | 31 / 88 / 160 / 632 | 3,591 / 36,569 |
+| IT test | 5 | 858 | 159 / 420 | 35 / 105 / 198 / 371 | 7,681 / 16,078 |
+
+| Label | CL train | CL dev | IT train | IT dev |
+|---|---|---|---|---|
+| Fact | 2,979 (28.1%) | 249 (17.8%) | 1,119 (17.9%) | 195 (26.1%) |
+| Issue | 17 (0.2%) | 3 (0.2%) | 90 (1.4%) | 12 (1.6%) |
+| ArgumentPetitioner | 976 (9.2%) | 344 (24.6%) | 637 (10.2%) | 56 (7.5%) |
+| ArgumentRespondent | 996 (9.4%) | 236 (16.9%) | 352 (5.6%) | 36 (4.8%) |
+| Statute | 367 (3.5%) | 58 (4.2%) | 732 (11.7%) | 62 (8.3%) |
+| Dissent | 284 (2.7%) | 0 | 0 | 0 |
+| PrecedentReliedUpon | 1,305 (12.3%) | 142 (10.2%) | 640 (10.2%) | 112 (15.0%) |
+| PrecedentNotReliedUpon | 209 (2.0%) | 0 | 360 (5.8%) | 50 (6.7%) |
+| PrecedentOverruled | 0 | 0 | 3 (0.05%) | 0 |
+| RulingByLowerCourt | 438 (4.1%) | 56 (4.0%) | 436 (7.0%) | 46 (6.2%) |
+| RatioOfTheDecision | 2,856 (27.0%) | 288 (20.6%) | 1,445 (23.1%) | 115 (15.4%) |
+| RulingByPresentCourt | 113 (1.1%) | 18 (1.3%) | 194 (3.1%) | 31 (4.2%) |
+| None | 53 (0.5%) | 2 (0.1%) | 244 (3.9%) | 31 (4.2%) |
+
+**Observations that shape the design**
+1. **Tiny corpus in documents, decent in sentences.** Only 80 training docs (≈16.8k sentences). Dev is 5 docs per domain, so dev scores are noisy; one long document can swing them.
+2. **Sentences are short, documents are long.** 128 tokens cover ~98% of sentences, but a document is ~5k tokens (up to 70k). So: encode each sentence (with a little neighbour context) and model the document as a *sequence of sentence vectors* (hierarchical model), instead of feeding whole documents.
+3. **Severe imbalance, and Macro-F1 punishes it.** Issue, None, RulingByPresentCourt, Dissent and PrecedentOverruled are rare. PrecedentOverruled has 3 examples in total; Dissent appears only in CL train. Needs class-weighted / focal loss and per-class analysis.
+4. **Domains differ.** CL is Fact/Ratio heavy with Dissent; IT has far more Statute, PrecedentNotReliedUpon and None. Train jointly (more data) with a domain marker, and report per-domain F1.
+5. **Position matters.** Roles follow document order (facts → arguments → ratio → ruling), so a document-level sequence layer (BiLSTM / small Transformer) plus relative sentence position should help; this is the "context-aware vs sentence-only" comparison the phase asks for.
 
 ## Submissions
 
