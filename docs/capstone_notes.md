@@ -14,6 +14,10 @@
   - B — Encoder–Decoder Transformer
   - C — Stacked LSTM LM
   - D — Temporal Convolutional Network (dilated residual TCN)
+- **Phase 1 Codabench (BERTScore / ROUGE-L / BLEU-4):** A 0.7929/0.1731/0.0208 · B 0.8058/0.1615/0.0145 · C 0.8020/0.1747/0.0174 · D 0.8052/0.1845/0.0213
+- **Phase 2 Codabench (strict macro F1 / P / R):** S1 0.1916/0.1958/0.2092 · S2 0.1768/0.2113/0.1939 · S3 0.4912/0.4693/0.5705 · S4 0.2527/0.2812/0.2637
+- **Phase 3 plan:** 6 submissions, one notebook each (user requirement); further requirements to come from user before building.
+- **Kaggle:** several accounts (30 GPU-h/week each, 12 h per run); `ruchikhemka` is the user's own second account.
 - **Phase 2 (done), one technique per architecture:**
   - S1: A + Full fine-tuning
   - S2: B + LoRA / Expanded LoRA

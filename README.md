@@ -25,14 +25,16 @@ Weights, datasets and `prediction.json` files are **not** stored here; they live
 
 ## Foundation models (Phase 1)
 
-| ID | Architecture | Params | Context | Best val ppl | Codabench BERTScore | Kaggle dataset |
+| ID | Architecture | Params | BERTScore F1 | ROUGE-L F1 | BLEU-4 | Checkpoint (Kaggle dataset) |
 |---|---|---|---|---|---|---|
-| A | Decoder-only Transformer | | | | | |
-| B | Encoder–Decoder Transformer | | | | | |
-| C | Stacked LSTM LM | | | | | |
-| D | Dilated Residual TCN | | | | | |
+| A | Decoder-only Transformer (12L, d=768, 12 heads, ctx 2048) | 125.03M | 0.7929 | 0.1731 | 0.0208 | `rohitbatra2004/phase111` |
+| B | Encoder–Decoder Transformer | 139.26M | **0.8058** | 0.1615 | 0.0145 | `rohitbatra2004/arch-data-1` |
+| C | Stacked LSTM LM | 103.40M | 0.8020 | 0.1747 | 0.0174 | `rohitbatra2004/phase133` |
+| D | Dilated Residual TCN | 114.16M | 0.8052 | **0.1845** | **0.0213** | `ruchikhemka/data-archd` (second Kaggle account) |
 
-Tokenizer: BPE, vocab size `<V>`, special tokens `<…>` — Kaggle dataset: `<link>`
+Codabench scores on the Phase-1 test set. Exact checkpoint files per model: see `code/phase1/README.md`.
+
+Tokenizer: byte-level BPE, vocab 50,000, special tokens `[PAD]`=0 `[UNK]`=1 `[BOS]`=2 `[EOS]`=3 — Kaggle dataset `rohitbatra2004/cs781-phase1-tokenized-corpus`, copy in [`tokenizer/`](tokenizer/).
 
 ---
 
@@ -40,8 +42,8 @@ Tokenizer: BPE, vocab size `<V>`, special tokens `<…>` — Kaggle dataset: `<l
 
 | Phase | Task | Metric | Best score | Submission | Model + technique |
 |---|---|---|---|---|---|
-| 1 | LM pretraining | BERTScore F1 | | | |
-| 2 | Legal NER | Strict Macro-F1 | | | |
+| 1 | LM pretraining | BERTScore F1 | 0.8058 | B | Encoder–Decoder, from scratch |
+| 2 | Legal NER | Strict Macro-F1 | 0.4912 | S3 | C (Stacked LSTM) + LORMA |
 | 3 | Rhetorical Role | Macro-F1 | | | |
 | 4 | Judgment Prediction | Macro-F1 | | | |
 | 5 | Statute Identification | Macro-F1 | | | |
