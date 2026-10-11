@@ -14,6 +14,7 @@ A self-hosted legal language foundation trained **from scratch** on the official
 | `code/common/` | Shared code reused across phases: tokenizer loading, the 4 model definitions, PEFT modules (LoRA, LORMA, …), KD utilities, data + eval helpers |
 | `code/phaseN/` | One folder per phase; one notebook per submission + phase README |
 | `results/` | `submissions.csv` (every Codabench run), per-phase metrics, plots |
+| `tokenizer/` | Shared 50K BPE tokenizer (`tokenizer.json`) used by every model |
 | `docs/` | Experiment log, design decisions, capstone rule notes |
 | `report/` | LaTeX source, figures, final PDF, `outline.md` |
 | `package_final.sh` | Builds the Hello IITK zip with the required structure |
