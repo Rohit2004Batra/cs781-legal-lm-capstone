@@ -1,0 +1,30 @@
+{
+  "configured_vocab_size": 50000,
+  "min_frequency": 2,
+  "seed": 42,
+  "source_dataset": "Exploration-Lab/CS-781-Capstone",
+  "special_token_ids": {
+    "[BOS]": 2,
+    "[EOS]": 3,
+    "[PAD]": 0,
+    "[UNK]": 1
+  },
+  "special_tokens": [
+    "[PAD]",
+    "[UNK]",
+    "[BOS]",
+    "[EOS]"
+  ],
+  "token_dtype": "uint16",
+  "tokenizer_training_chars_per_source": 25000000,
+  "tokenizer_type": "Byte-Level BPE",
+  "train_sources": {
+    "acts": "Phase_1_Pretraining/Train/train_acts.json",
+    "high_courts": "Phase_1_Pretraining/Train/train_high_courts.json",
+    "supreme_court": "Phase_1_Pretraining/Train/train_supreme_court.json",
+    "tribunals": "Phase_1_Pretraining/Train/train_tribunals.json"
+  },
+  "validation_fraction": 0.02,
+  "validation_split_method": "deterministic SHA-256 document hash",
+  "vocab_size": 50000
+}
