@@ -47,14 +47,17 @@ Submission: one `prediction.json` covering all 10 test docs (5 CL + 5 IT), `{doc
 
 | # | Notebook | Base model | Technique | Trainable / total params | Train time | Peak GPU mem | Local val | Codabench | Sub ID |
 |---|---|---|---|---|---|---|---|---|---|
-| S1 | | | | | | | | | |
+| S1 | `P3_S1_C_LSTM_LORMA.ipynb` | C Stacked LSTM | LORMA (r=8, α=16) on all LSTM ih/hh weights + doc BiLSTM | | | | | | |
 | S2 | | | | | | | | | |
 | S3 | | | | | | | | | |
 | S4 | | | | | | | | | |
 
 ## Method details
-### S1 — <name>
-Architecture of head, pooling, context used, loss, key hyperparameters, why this choice.
+### Shared design (all submissions)
+Frozen Phase-1 backbone + one adaptation technique → sentence vector (≤128 tokens, `[BOS]…[EOS]`, mean ⊕ last-token pooling → 512-d) → domain embedding (CL/IT) + relative position → document BiLSTM (256 per direction) → linear over 13 labels. Trained on windows of 128 consecutive sentences (stride 64), CL+IT jointly, class-weighted cross-entropy (weight = (N/(K·n_c))^0.5, capped at 10), AdamW with warm-up + linear decay, fp16. Best epoch chosen by dev Macro-F1 (CL+IT dev); early stopping patience 5. Checkpoints `latest.pt` / `best.pt` every epoch, automatic resume.
+
+### S1 — Architecture C + LORMA
+LORMA (multiplicative low-rank adaptation): every LSTM weight (input and recurrent, all 3 layers) becomes `W_eff = (I + (α/r)·B·A)·W0`, per gate block, with `B = 0` at start. Ranks r=8, α=16 → ~0.5M trainable backbone parameters (~0.5% of the backbone). Also reports a sentence-only ablation (linear probe on the same sentence vectors, no document BiLSTM).
 
 ## Analysis
 Answer each "Expected Analysis" bullet from the capstone doc for this phase:
