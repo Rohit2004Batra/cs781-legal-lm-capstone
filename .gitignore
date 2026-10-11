@@ -1,0 +1,36 @@
+# Large artifacts live in Kaggle datasets, never in git
+*.pt
+*.pth
+*.bin
+*.safetensors
+*.ckpt
+*.npy
+*.npz
+*.arrow
+*.parquet
+checkpoints/
+wandb/
+runs/
+
+# Data and predictions
+data/
+*.zip
+prediction.json
+predictions/
+
+# Python / notebooks
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.env
+
+# LaTeX build files
+report/*.aux
+report/*.log
+report/*.out
+report/*.toc
+report/*.bbl
+report/*.blg
+report/*.synctex.gz
+report/*.fdb_latexmk
+report/*.fls
