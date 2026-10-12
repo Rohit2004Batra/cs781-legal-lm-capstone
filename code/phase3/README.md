@@ -48,7 +48,7 @@ Submission: one `prediction.json` covering all 10 test docs (5 CL + 5 IT), `{doc
 | # | Notebook | Base model | Technique | Trainable / total params | Train time | Peak GPU mem | Local val | Codabench | Sub ID |
 |---|---|---|---|---|---|---|---|---|---|
 | S1 | `P3_S1_C_LSTM_LORMA.ipynb` | C Stacked LSTM | LORMA (r=8, α=16) on all LSTM ih/hh weights + doc BiLSTM | 3.39M / 106.79M (LORMA 0.49M) | 24.6 min (20 ep, best 15) | 2.23 GB | 0.4762 (CL 0.390, IT 0.470) | **0.4024** (P 0.412, R 0.416) | |
-| S2 | `P3_S2_A_Decoder_LoRA.ipynb` | A Decoder-only | LoRA (r=8, α=16) on q/k/v/out of all 12 layers + doc BiLSTM | | | | | | |
+| S2 | `P3_S2_A_Decoder_LoRA.ipynb` | A Decoder-only | LoRA (r=8, α=16) on q/k/v/out of all 12 layers + doc BiLSTM | 2.96M / 127.99M (LoRA 0.59M) | 38.5 min (18 ep, best 13) | 6.67 GB | 0.4402 (13-label); 0.5202 present (CL 0.475, IT 0.531) | **0.4825** (P 0.535, R 0.540) | |
 | S3 | | | | | | | | | |
 | S4 | | | | | | | | | |
 
@@ -71,6 +71,14 @@ LoRA on the query, key, value and output projections of all 12 decoder layers (r
 - Strong classes: Statute 0.77, RulingByPresentCourt 0.65, Fact 0.64. Weak: Issue 0.27 (15 dev sentences), None 0.31, PrecedentNotReliedUpon 0.31, RulingByLowerCourt 0.37.
 - ArgumentRespondent has high precision (0.80) but low recall (0.28); RatioOfTheDecision the reverse (P 0.35, R 0.64) — the model over-predicts Ratio, likely absorbing respondent arguments and lower-court rulings.
 - Training loss keeps falling (0.21 at epoch 20) while dev Macro-F1 plateaus after epoch 15 → mild overfitting; best-epoch selection handles it.
+
+### S2 results (dev, best epoch 13)
+- Dev Macro-F1 **0.4402** over 13 labels (P 0.4659, R 0.4454); 0.5202 over present labels (CL 0.4753, IT 0.5310). **Codabench test Macro-F1 0.4825** (P 0.535, R 0.540) — best so far.
+- **Ranking agrees between dev and test:** S2 > S1 on both (13-label dev 0.440 vs 0.403; test 0.4825 vs 0.4024). The test score sits between S2's two dev conventions, so the official averaging convention is still not pinned down.
+- **Backbone reversal vs Phase 2:** in NER the LSTM (C) was far ahead of the decoder (A); for sentence-level roles the Transformer transfers better, notably on Fact (0.74 vs 0.64), Issue (0.52 vs 0.27) and Ratio (0.64 vs 0.45; the S1 over-prediction of Ratio is gone).
+- Context again roughly doubles the score: sentence-only 0.2826 vs 0.4402 with the document BiLSTM.
+- Remaining weaknesses: PrecedentNotReliedUpon is now over-predicted (P 0.12, R 0.48) — confused with PrecedentReliedUpon; ArgumentRespondent recall still low (0.26).
+- Cost: 2.96M trainable (2.3%), 38.5 min, 6.67 GB — about 1.6× the time and 3× the memory of S1.
 
 Answer each "Expected Analysis" bullet from the capstone doc for this phase:
 - Which technique/model worked best, and why

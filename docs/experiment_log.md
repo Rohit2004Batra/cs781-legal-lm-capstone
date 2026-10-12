@@ -32,3 +32,15 @@ This is the raw material for the report and the viva — record it the day you r
 - **Codabench:** Macro-F1 0.4024, P 0.412, R 0.416 (12 Oct)
 - **Observations:** context doubles Macro-F1; Ratio over-predicted (P 0.35 / R 0.64); ArgumentRespondent under-recalled (R 0.28); sklearn macro excludes absent labels (13-label average ≈0.40)
 - **Next step:** submit; compare Codabench vs dev to learn the scorer's label-averaging convention
+
+### 2026-10-12 · Phase 3 · P3_S2_A_Decoder_LoRA
+- **Goal / hypothesis:** LoRA on the decoder-only Transformer; same head/training as S1 to isolate backbone + technique.
+- **Base model:** A, decoder-only (`model_A_state_dict.pt`, 125.03M)
+- **Technique:** LoRA r=8, α=16, dropout 0.05 on q/k/v/out of 12 layers; mean ⊕ [EOS] pooling
+- **Config:** as S1, adapter LR 3e-4; selection by 13-label dev Macro-F1
+- **Cost:** 2.96M trainable / 127.99M; 38.5 min (18 epochs, early stop); peak 6.67 GB
+- **Local val:** 13-label 0.4402 (P 0.4659, R 0.4454); present-label 0.5202; CL 0.4753, IT 0.5310; best epoch 13
+- **Ablation:** sentence-only 0.2826
+- **Codabench:** Macro-F1 0.4825, P 0.5354, R 0.5399 — best so far
+- **Observations:** decoder beats LSTM here (opposite of Phase 2); Ratio no longer over-predicted; PrecedentNotReliedUpon over-predicted (P 0.12); dev-vs-test ranking consistent with S1
+- **Next step:** S3 = Architecture B encoder + IA³; S2 is the current KD-teacher candidate

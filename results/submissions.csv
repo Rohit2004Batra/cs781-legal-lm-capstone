@@ -8,3 +8,4 @@ date,phase,sub_id,notebook,base_model,technique,trainable_params,total_params,lo
 2026-10-11,2,,S3_StackedLSTM_LORAM.ipynb,C Stacked LSTM,LORMA,,103404880,,0.4912,P 0.4693; R 0.5705,,best Phase 2
 2026-10-11,2,,S4_TCN_KnowDist.ipynb,D TCN,knowledge distillation,,114155520,,0.2527,P 0.2812; R 0.2637,,
 2026-10-12,3,,P3_S1_C_LSTM_LORMA.ipynb,C Stacked LSTM,LORMA r=8 + doc BiLSTM,3389453,106794333,0.4762 (dev; CL 0.3902 IT 0.4695),0.4024,P 0.412; R 0.416,yes,"sentence-only ablation 0.2347; 24.6 min; 2.23 GB"
+2026-10-12,3,,P3_S2_A_Decoder_LoRA.ipynb,A Decoder-only,LoRA r=8 q/k/v/out + doc BiLSTM,2963469,127992333,0.4402 (dev 13-label; present 0.5202),0.4825,P 0.535; R 0.540,yes,"sentence-only 0.2826; 38.5 min; 6.67 GB; best so far"
