@@ -49,7 +49,7 @@ Submission: one `prediction.json` covering all 10 test docs (5 CL + 5 IT), `{doc
 |---|---|---|---|---|---|---|---|---|---|
 | S1 | `P3_S1_C_LSTM_LORMA.ipynb` | C Stacked LSTM | LORMA (r=8, α=16) on all LSTM ih/hh weights + doc BiLSTM | 3.39M / 106.79M (LORMA 0.49M) | 24.6 min (20 ep, best 15) | 2.23 GB | 0.4762 (CL 0.390, IT 0.470) | **0.4024** (P 0.412, R 0.416) | |
 | S2 | `P3_S2_A_Decoder_LoRA.ipynb` | A Decoder-only | LoRA (r=8, α=16) on q/k/v/out of all 12 layers + doc BiLSTM | 2.96M / 127.99M (LoRA 0.59M) | 38.5 min (18 ep, best 13) | 6.67 GB | 0.4402 (13-label); 0.5202 present (CL 0.475, IT 0.531) | **0.4825** (P 0.535, R 0.540) | |
-| S3 | `P3_S3_B_Encoder_IA3.ipynb` | B Encoder–Decoder (encoder only) | IA³ on keys, values, FFN activations of 6 layers + doc BiLSTM | | | | | | |
+| S3 | `P3_S3_B_Encoder_IA3.ipynb` | B Encoder–Decoder (encoder only) | IA³ on keys, values, FFN activations of 6 layers + doc BiLSTM | 2.40M / 84.12M (IA³ 27.6K) | 24.8 min (20 ep, best 15) | 4.29 GB | 0.2188 (13-label); 0.2586 present (CL 0.243, IT 0.262) | 0.2364 (P 0.308, R 0.252) | |
 | S4 | | | | | | | | | |
 
 ## Method details
@@ -82,6 +82,13 @@ Only the 6-layer bidirectional encoder of B is used (decoder weights are verifie
 - Context again roughly doubles the score: sentence-only 0.2826 vs 0.4402 with the document BiLSTM.
 - Remaining weaknesses: PrecedentNotReliedUpon is now over-predicted (P 0.12, R 0.48) — confused with PrecedentReliedUpon; ArgumentRespondent recall still low (0.26).
 - Cost: 2.96M trainable (2.3%), 38.5 min, 6.67 GB — about 1.6× the time and 3× the memory of S1.
+
+### S3 results (dev, best epoch 15)
+- Dev Macro-F1 **0.2188** over 13 labels (P 0.2577, R 0.2150); 0.2586 over present labels. **Codabench 0.2364** (P 0.308, R 0.252) — clearly the weakest so far.
+- **Underfitting, not overfitting:** training loss is still 1.49 after 20 epochs (S1 reached 0.21, S2 0.31) and dev was still creeping up. With only 27.6K adapter parameters, IA³ can rescale features but not reshape them.
+- **The frozen B-encoder features are the weakest starting point:** the sentence-only probe gives 0.1167, vs 0.2347 (C) and 0.2826 (A). IA³ cannot fix a representation that does not already separate the roles; LoRA/LORMA, which add new directions, can.
+- Statute (0.69) and RulingByPresentCourt (0.59) survive because they have strong lexical cues ("Section …", "appeal is dismissed"); roles that need discourse understanding (ArgumentPetitioner 0.12, PrecedentReliedUpon 0.18, RulingByLowerCourt 0.00, Issue 0.00) collapse.
+- Takeaway for the report: parameter efficiency has a floor — at ~0.03% trainable parameters the adapter lacks capacity on a backbone whose features do not already fit the task. Cheapest run (24.8 min, 4.29 GB).
 
 Answer each "Expected Analysis" bullet from the capstone doc for this phase:
 - Which technique/model worked best, and why

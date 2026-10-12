@@ -44,3 +44,14 @@ This is the raw material for the report and the viva — record it the day you r
 - **Codabench:** Macro-F1 0.4825, P 0.5354, R 0.5399 — best so far
 - **Observations:** decoder beats LSTM here (opposite of Phase 2); Ratio no longer over-predicted; PrecedentNotReliedUpon over-predicted (P 0.12); dev-vs-test ranking consistent with S1
 - **Next step:** S3 = Architecture B encoder + IA³; S2 is the current KD-teacher candidate
+
+### 2026-10-12 · Phase 3 · P3_S3_B_Encoder_IA3
+- **Goal / hypothesis:** test an extremely parameter-efficient method (IA³) on the B encoder.
+- **Base model:** B encoder only (6 layers; decoder weights skipped), padding mask added
+- **Technique:** IA³ vectors on keys, values, FFN activations (27,648 params); adapter LR 3e-3
+- **Cost:** 2.40M trainable / 84.12M; 24.8 min; 4.29 GB
+- **Local val:** 13-label 0.2188 (P 0.2577, R 0.2150); present 0.2586; best epoch 15
+- **Ablation:** sentence-only 0.1167
+- **Codabench:** Macro-F1 0.2364, P 0.3081, R 0.2523
+- **Observations:** underfits (train loss 1.49 at epoch 20, dev still rising); weakest frozen features of the three backbones; only lexically cued roles (Statute, RulingByPresentCourt) survive
+- **Next step:** keep as the capacity-floor data point; S4 = D (TCN) + prompt tuning
