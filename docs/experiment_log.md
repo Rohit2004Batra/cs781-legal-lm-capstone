@@ -29,6 +29,6 @@ This is the raw material for the report and the viva — record it the day you r
 - **Cost:** 3.39M trainable / 106.79M total (LORMA 0.49M); 24.6 min; peak 2.23 GB on one T4
 - **Local val:** dev Macro-F1 0.4762 (P 0.5430, R 0.4532); CL 0.3902, IT 0.4695; best epoch 15
 - **Ablation:** sentence-only (linear probe, no doc context) 0.2347
-- **Codabench:** pending
+- **Codabench:** Macro-F1 0.4024, P 0.412, R 0.416 (12 Oct)
 - **Observations:** context doubles Macro-F1; Ratio over-predicted (P 0.35 / R 0.64); ArgumentRespondent under-recalled (R 0.28); sklearn macro excludes absent labels (13-label average ≈0.40)
 - **Next step:** submit; compare Codabench vs dev to learn the scorer's label-averaging convention

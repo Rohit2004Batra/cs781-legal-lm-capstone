@@ -47,7 +47,7 @@ Submission: one `prediction.json` covering all 10 test docs (5 CL + 5 IT), `{doc
 
 | # | Notebook | Base model | Technique | Trainable / total params | Train time | Peak GPU mem | Local val | Codabench | Sub ID |
 |---|---|---|---|---|---|---|---|---|---|
-| S1 | `P3_S1_C_LSTM_LORMA.ipynb` | C Stacked LSTM | LORMA (r=8, α=16) on all LSTM ih/hh weights + doc BiLSTM | 3.39M / 106.79M (LORMA 0.49M) | 24.6 min (20 ep, best 15) | 2.23 GB | 0.4762 (CL 0.390, IT 0.470) | | |
+| S1 | `P3_S1_C_LSTM_LORMA.ipynb` | C Stacked LSTM | LORMA (r=8, α=16) on all LSTM ih/hh weights + doc BiLSTM | 3.39M / 106.79M (LORMA 0.49M) | 24.6 min (20 ep, best 15) | 2.23 GB | 0.4762 (CL 0.390, IT 0.470) | **0.4024** (P 0.412, R 0.416) | |
 | S2 | | | | | | | | | |
 | S3 | | | | | | | | | |
 | S4 | | | | | | | | | |
@@ -62,9 +62,9 @@ LORMA (multiplicative low-rank adaptation): every LSTM weight (input and recurre
 ## Analysis
 
 ### S1 results (dev, best epoch 15)
-- Dev Macro-F1 **0.4762** (P 0.5430, R 0.4532); CL 0.3902, IT 0.4695.
+- Dev Macro-F1 **0.4762** (P 0.5430, R 0.4532); CL 0.3902, IT 0.4695. **Codabench test Macro-F1 0.4024** (P 0.412, R 0.416).
 - **Context matters most:** the same sentence vectors with a linear classifier (no document BiLSTM) give 0.2347 → document context roughly doubles Macro-F1.
-- **Metric caveat:** sklearn `average="macro"` averages only over labels present in gold or prediction (11 on dev; Dissent and PrecedentOverruled are absent). Averaged over all 13 labels the same predictions give ≈0.40. Compare with the Codabench number to see which convention the official scorer uses.
+- **Metric caveat:** sklearn `average="macro"` averages only over labels present in gold or prediction (11 on dev; Dissent and PrecedentOverruled are absent). Averaged over all 13 labels the same predictions give ≈0.40. Codabench gave 0.4024, which matches the 13-label dev figure (≈0.40) closely, but a dev→test drop of that size is also plausible with only 5 dev docs per domain, so the convention is not settled. From S2 on, notebooks report both.
 - Strong classes: Statute 0.77, RulingByPresentCourt 0.65, Fact 0.64. Weak: Issue 0.27 (15 dev sentences), None 0.31, PrecedentNotReliedUpon 0.31, RulingByLowerCourt 0.37.
 - ArgumentRespondent has high precision (0.80) but low recall (0.28); RatioOfTheDecision the reverse (P 0.35, R 0.64) — the model over-predicts Ratio, likely absorbing respondent arguments and lower-court rulings.
 - Training loss keeps falling (0.21 at epoch 20) while dev Macro-F1 plateaus after epoch 15 → mild overfitting; best-epoch selection handles it.
