@@ -50,7 +50,7 @@ Submission: one `prediction.json` covering all 10 test docs (5 CL + 5 IT), `{doc
 | S1 | `P3_S1_C_LSTM_LORMA.ipynb` | C Stacked LSTM | LORMA (r=8, α=16) on all LSTM ih/hh weights + doc BiLSTM | 3.39M / 106.79M (LORMA 0.49M) | 24.6 min (20 ep, best 15) | 2.23 GB | 0.4762 (CL 0.390, IT 0.470) | **0.4024** (P 0.412, R 0.416) | |
 | S2 | `P3_S2_A_Decoder_LoRA.ipynb` | A Decoder-only | LoRA (r=8, α=16) on q/k/v/out of all 12 layers + doc BiLSTM | 2.96M / 127.99M (LoRA 0.59M) | 38.5 min (18 ep, best 13) | 6.67 GB | 0.4402 (13-label); 0.5202 present (CL 0.475, IT 0.531) | **0.4825** (P 0.535, R 0.540) | |
 | S3 | `P3_S3_B_Encoder_IA3.ipynb` | B Encoder–Decoder (encoder only) | IA³ on keys, values, FFN activations of 6 layers + doc BiLSTM | 2.40M / 84.12M (IA³ 27.6K) | 24.8 min (20 ep, best 15) | 4.29 GB | 0.2188 (13-label); 0.2586 present (CL 0.243, IT 0.262) | 0.2364 (P 0.308, R 0.252) | |
-| S4 | | | | | | | | | |
+| S4 | `P3_S4_D_TCN_PromptTuning.ipynb` | D Dilated Residual TCN | Prompt tuning (20 soft tokens) + doc BiLSTM | | | | | | |
 
 ## Method details
 ### Shared design (all submissions)
@@ -64,6 +64,9 @@ LoRA on the query, key, value and output projections of all 12 decoder layers (r
 
 ### S3 — Architecture B encoder + IA³
 Only the 6-layer bidirectional encoder of B is used (decoder weights are verified and skipped), with a padding mask added to self-attention (Phase-1 pretraining used unpadded sequences, so masking changes no weights). IA³ multiplies attention keys, attention values and FFN hidden activations by learned vectors initialised to 1 → 27,648 trainable backbone parameters (≈0.06% of the encoder), about 20× fewer than LoRA in S2. Adapter LR 3e-3 (IA³ vectors need larger steps); head and training otherwise identical to S1/S2.
+
+### S4 — Architecture D + Prompt Tuning
+20 trainable soft-prompt vectors (initialised from embeddings of frequent tokens) are prepended to every sentence; the frozen causal TCN (receptive field ≈4,093 tokens) lets every sentence token see them, and prompt positions are dropped before pooling. 20,480 trainable backbone parameters (0.018%). Prompt tuning was chosen for D because it needs no change inside the network — attention-based adapters do not apply to a convolutional model. Adapter LR 1e-2; head and training otherwise identical to S1–S3.
 
 ## Analysis
 
