@@ -48,7 +48,7 @@ Submission: one `prediction.json` covering all 10 test docs (5 CL + 5 IT), `{doc
 | # | Notebook | Base model | Technique | Trainable / total params | Train time | Peak GPU mem | Local val | Codabench | Sub ID |
 |---|---|---|---|---|---|---|---|---|---|
 | S1 | `P3_S1_C_LSTM_LORMA.ipynb` | C Stacked LSTM | LORMA (r=8, α=16) on all LSTM ih/hh weights + doc BiLSTM | 3.39M / 106.79M (LORMA 0.49M) | 24.6 min (20 ep, best 15) | 2.23 GB | 0.4762 (CL 0.390, IT 0.470) | **0.4024** (P 0.412, R 0.416) | |
-| S2 | | | | | | | | | |
+| S2 | `P3_S2_A_Decoder_LoRA.ipynb` | A Decoder-only | LoRA (r=8, α=16) on q/k/v/out of all 12 layers + doc BiLSTM | | | | | | |
 | S3 | | | | | | | | | |
 | S4 | | | | | | | | | |
 
@@ -58,6 +58,9 @@ Frozen Phase-1 backbone + one adaptation technique → sentence vector (≤128 t
 
 ### S1 — Architecture C + LORMA
 LORMA (multiplicative low-rank adaptation): every LSTM weight (input and recurrent, all 3 layers) becomes `W_eff = (I + (α/r)·B·A)·W0`, per gate block, with `B = 0` at start. Ranks r=8, α=16 → ~0.5M trainable backbone parameters (~0.5% of the backbone). Also reports a sentence-only ablation (linear probe on the same sentence vectors, no document BiLSTM).
+
+### S2 — Architecture A + LoRA
+LoRA on the query, key, value and output projections of all 12 decoder layers (r=8, α=16, dropout 0.05, B=0 at start) → 589,824 trainable backbone parameters (0.47% of 125.0M). Sentence vector uses mean ⊕ final `[EOS]` state (causal attention: `[EOS]` has seen the whole sentence). Head and training identical to S1 except adapter LR 3e-4. From S2 on, the best epoch is selected by 13-label dev Macro-F1 (the convention S1's Codabench score matched); present-label Macro-F1 is also reported.
 
 ## Analysis
 
