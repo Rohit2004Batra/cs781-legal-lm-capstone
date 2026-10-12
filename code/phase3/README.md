@@ -49,7 +49,7 @@ Submission: one `prediction.json` covering all 10 test docs (5 CL + 5 IT), `{doc
 |---|---|---|---|---|---|---|---|---|---|
 | S1 | `P3_S1_C_LSTM_LORMA.ipynb` | C Stacked LSTM | LORMA (r=8, α=16) on all LSTM ih/hh weights + doc BiLSTM | 3.39M / 106.79M (LORMA 0.49M) | 24.6 min (20 ep, best 15) | 2.23 GB | 0.4762 (CL 0.390, IT 0.470) | **0.4024** (P 0.412, R 0.416) | |
 | S2 | `P3_S2_A_Decoder_LoRA.ipynb` | A Decoder-only | LoRA (r=8, α=16) on q/k/v/out of all 12 layers + doc BiLSTM | 2.96M / 127.99M (LoRA 0.59M) | 38.5 min (18 ep, best 13) | 6.67 GB | 0.4402 (13-label); 0.5202 present (CL 0.475, IT 0.531) | **0.4825** (P 0.535, R 0.540) | |
-| S3 | | | | | | | | | |
+| S3 | `P3_S3_B_Encoder_IA3.ipynb` | B Encoder–Decoder (encoder only) | IA³ on keys, values, FFN activations of 6 layers + doc BiLSTM | | | | | | |
 | S4 | | | | | | | | | |
 
 ## Method details
@@ -61,6 +61,9 @@ LORMA (multiplicative low-rank adaptation): every LSTM weight (input and recurre
 
 ### S2 — Architecture A + LoRA
 LoRA on the query, key, value and output projections of all 12 decoder layers (r=8, α=16, dropout 0.05, B=0 at start) → 589,824 trainable backbone parameters (0.47% of 125.0M). Sentence vector uses mean ⊕ final `[EOS]` state (causal attention: `[EOS]` has seen the whole sentence). Head and training identical to S1 except adapter LR 3e-4. From S2 on, the best epoch is selected by 13-label dev Macro-F1 (the convention S1's Codabench score matched); present-label Macro-F1 is also reported.
+
+### S3 — Architecture B encoder + IA³
+Only the 6-layer bidirectional encoder of B is used (decoder weights are verified and skipped), with a padding mask added to self-attention (Phase-1 pretraining used unpadded sequences, so masking changes no weights). IA³ multiplies attention keys, attention values and FFN hidden activations by learned vectors initialised to 1 → 27,648 trainable backbone parameters (≈0.06% of the encoder), about 20× fewer than LoRA in S2. Adapter LR 3e-3 (IA³ vectors need larger steps); head and training otherwise identical to S1/S2.
 
 ## Analysis
 
