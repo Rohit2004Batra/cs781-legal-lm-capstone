@@ -126,6 +126,27 @@ Teacher = S7 (12-layer A + LoRA attn/FFN + BiLSTM-CRF), loaded from its saved ch
 - **Cheaper in memory:** 5.12 GB vs 8.95 GB for S7 (no LoRA activations through the FFN), similar time.
 - CRF gain is smaller than in S7 (+0.019 vs +0.042). Typical error: RatioOfTheDecision over-predicted (recall 0.82, precision 0.42); Statute is the best class of the phase (0.82).
 
+### S6 results (student Stage 1 dev, best epoch 17, Viterbi)
+- Student dev Macro-F1 **0.4579** over 13 labels (P 0.5134, R 0.4334); 0.5411 over present labels (CL 0.4521, IT 0.5484). **Codabench 0.5184** (P 0.582, R 0.502) — **best Phase 3 result**, above its own teacher S7 (0.5019).
+- **The student beats the teacher** on dev (0.4579 vs 0.4497, 101.8% kept) and on test (+0.017) with **66.4% of the parameters**, **1.51× faster** dev labelling (3.0 s vs 4.5 s) and **about half the GPU memory** (4.64 GB vs 8.95 GB).
+- Why a smaller student can win here: (1) the teacher's soft labels act as a strong regulariser — with only 80 training documents, matching the teacher's full distribution over 13 roles (e.g. how plausible "ArgumentRespondent" is for a petitioner sentence) is more informative than one hard label; (2) half the depth means fewer activations to adapt and less over-fitting on a small corpus; (3) dev/test are only 10 documents each, so part of the gap is noise — the honest claim is "KD kept all of the teacher's quality at two-thirds of the size", not "smaller is better".
+- Speed-up is 1.51×, not 2×: the embedding layer, sentence pooling, document BiLSTM and Viterbi decoding cost the same for both models.
+- Per-class vs teacher (S7): ArgumentPetitioner 0.50 → 0.59, ArgumentRespondent 0.48 → 0.54, RulingByLowerCourt 0.40 → 0.51, Statute 0.75 → 0.80; Issue 0.55 → 0.45 (15 dev sentences).
+- CRF gain again clear: 0.4579 (Viterbi) vs 0.4287 (argmax).
+
+### Phase 3 summary (Codabench Macro-F1)
+| Rank | Submission | Backbone + technique | Test | Dev (13-label) |
+|---|---|---|---|---|
+| 1 | S6 | KD: S7 → 6-layer A student, LoRA + BiLSTM-CRF | **0.5184** | 0.4579 |
+| 2 | S7 | A + LoRA (attn+FFN) + BiLSTM-CRF, train+dev | 0.5019 | 0.4497 |
+| 3 | S2 | A + LoRA (attention) + BiLSTM | 0.4825 | 0.4402 |
+| 4 | S5 | A + prefix tuning + BiLSTM-CRF, train+dev | 0.4527 | 0.4249 |
+| 5 | S1 | C (LSTM) + LORMA + BiLSTM | 0.4024 | ≈0.40 |
+| 6 | S4 | D (TCN) + prompt tuning + BiLSTM | 0.3391 | 0.3289 |
+| 7 | S3 | B encoder + IA³ + BiLSTM | 0.2364 | 0.2188 |
+
+Dev and test rankings agree for every pair of submissions, so the dev set — although only 10 documents — was a reliable guide.
+
 Answer each "Expected Analysis" bullet from the capstone doc for this phase:
 - Which technique/model worked best, and why
 - PEFT vs full adaptation

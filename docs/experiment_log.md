@@ -90,3 +90,13 @@ This is the raw material for the report and the viva — record it the day you r
 - **Codabench:** Macro-F1 0.4527, P 0.4992, R 0.4671
 - **Observations:** LoRA (S7) beats prefix tuning by 0.025 dev / 0.049 test; prefix learns slower; lower memory; Ratio over-predicted
 - **Next step:** S6 — knowledge distillation, S7 teacher → 6-layer student
+
+### 2026-10-13 · Phase 3 · P3_S6_KD_S7Teacher_6LayerStudent
+- **Goal / hypothesis:** mandatory KD — can a half-depth student keep S7's quality?
+- **Teacher:** S7 (Stage-1 checkpoint for student Stage 1, Stage-2 checkpoint for student Stage 2), loaded from dataset P3_S7_Dataset
+- **Student:** A layers (0,2,4,6,8,10) + LoRA attn/FFN + BiLSTM-CRF; loss = CRF NLL + weighted CE + T²·KL, T=2
+- **Cost:** 85.54M vs 128.73M params (66.4%); 30.5 + 29.1 min; 4.64 GB; dev labelling 3.0 s vs 4.5 s
+- **Local val:** student 0.4579 vs teacher 0.4497 (13-label dev, Viterbi); argmax 0.4287
+- **Codabench:** Macro-F1 0.5184, P 0.5817, R 0.5020 — best of Phase 3
+- **Observations:** student > teacher on dev and test; soft labels regularise on a small corpus; biggest gains on argument roles and RulingByLowerCourt
+- **Phase 3 complete:** 7 submissions (S1–S7), all four backbones, LORMA + KD included
