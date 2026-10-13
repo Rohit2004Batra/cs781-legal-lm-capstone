@@ -55,3 +55,8 @@ This is the raw material for the report and the viva — record it the day you r
 - **Codabench:** Macro-F1 0.2364, P 0.3081, R 0.2523
 - **Observations:** underfits (train loss 1.49 at epoch 20, dev still rising); weakest frozen features of the three backbones; only lexically cued roles (Statute, RulingByPresentCourt) survive
 - **Next step:** keep as the capacity-floor data point; S4 = D (TCN) + prompt tuning
+
+### 2026-10-13 · Phase 3 · P3_S4_D_TCN_PromptTuning (first attempt, timed out)
+- **What happened:** ~220 min/epoch; Kaggle 12 h limit hit after 3 epochs (dev 13-label 0.0587, 0.1657, 0.1790).
+- **Cause:** dilated Conv1d (dilation up to 512, left padding up to 1,024) on ~148-token inputs → slow cuDNN path.
+- **Fix:** causal conv rewritten as per-tap matrix multiplies, skipping taps that only read padding; exact (max diff 7e-7 vs Phase-1 implementation); same parameter names, so old checkpoints resume.

@@ -68,6 +68,8 @@ Only the 6-layer bidirectional encoder of B is used (decoder weights are verifie
 ### S4 — Architecture D + Prompt Tuning
 20 trainable soft-prompt vectors (initialised from embeddings of frequent tokens) are prepended to every sentence; the frozen causal TCN (receptive field ≈4,093 tokens) lets every sentence token see them, and prompt positions are dropped before pooling. 20,480 trainable backbone parameters (0.018%). Prompt tuning was chosen for D because it needs no change inside the network — attention-based adapters do not apply to a convolutional model. Adapter LR 1e-2; head and training otherwise identical to S1–S3.
 
+*Engineering note:* the first run took ~220 min per epoch and hit Kaggle's 12-hour limit after 3 epochs (dev Macro-F1 0.0587 → 0.1657 → 0.1790). Cause: PyTorch's dilated `Conv1d` with dilations up to 512 on ~148-token inputs (each conv left-padded by up to 1,024 zeros) falls back to a very slow kernel. The notebook now computes each causal convolution as one matrix multiply per kernel tap and skips taps whose shift exceeds the sequence length (they only ever read padding). This is mathematically identical to Phase 1 (max difference 7e-7 against the original weight-normalised `Conv1d` in testing) and uses the same weight names, so the Phase-1 checkpoint and the interrupted run's checkpoints both load unchanged.
+
 ## Analysis
 
 ### S1 results (dev, best epoch 15)
