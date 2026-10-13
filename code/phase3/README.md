@@ -77,6 +77,9 @@ Extra submission aimed at the leaderboard, built on S2 (same backbone and techni
 ### S5 — Architecture A + Prefix tuning + CRF, trained on train + dev
 Identical to S7 except the adaptation method, so S5 vs S7 isolates **prefix tuning vs LoRA**. Every attention layer gets 20 learned key/value vectors that all real tokens can attend to (causality among real tokens is kept); the keys/values are produced by an MLP from 20 learned embeddings (Li & Liang's reparameterisation, ~9.9M parameters during training, 368,640 key/value numbers kept after training). The MLP's last layer starts at zero, so all prefixes start as zero vectors. Adapter LR 1e-3. Verified: without a prefix the backbone output equals S2's exactly; with a prefix, later tokens still cannot influence earlier ones.
 
+### S6 — Knowledge distillation: S7 teacher → 6-layer student
+Teacher = S7 (12-layer A + LoRA attn/FFN + BiLSTM-CRF), loaded from its saved checkpoints (Stage-1 teacher for Stage 1, Stage-2 teacher for Stage 2, so the dev comparison is fair). Student = Architecture A with every other Phase-1 layer kept (0, 2, 4, 6, 8, 10; DistilBERT-style) → 82.5M of 125.0M backbone parameters (66%), plus the same LoRA and BiLSTM-CRF head. Teacher soft labels: softmax(per-sentence scores / T), T = 2, computed once per whole document. Loss = CRF NLL + class-weighted CE + T²·KL(teacher ‖ student). Reports teacher vs student dev Macro-F1, parameter counts and dev labelling time.
+
 ## Analysis
 
 ### S1 results (dev, best epoch 15)
