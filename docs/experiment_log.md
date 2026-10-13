@@ -70,3 +70,14 @@ This is the raw material for the report and the viva — record it the day you r
 - **Codabench:** Macro-F1 0.3391, P 0.3630, R 0.3471
 - **Observations:** beats IA³ (S3) with fewer adapter params because D's frozen features are better; argument roles weakest
 - **Next step:** S5 = A + prefix tuning; S6 = knowledge distillation from S2 (A + LoRA)
+
+### 2026-10-13 · Phase 3 · P3_S7_A_LoRA_CRF_TrainDev
+- **Goal / hypothesis:** raise the leaderboard score from S2 with a CRF (label order), more LoRA capacity (FFN) and dev data for training.
+- **Base model:** A decoder (125.03M); LoRA r=8 on q/k/v/out + fc1/fc2 (1.33M)
+- **Head:** S2 head + linear-chain CRF; loss = CRF NLL/S + class-weighted CE; decoding (Viterbi vs argmax) chosen on dev
+- **Training:** Stage 1 train-only (best epoch 11 of 16, early stop) → Stage 2 train+dev, 11 epochs, same schedule
+- **Cost:** 3.70M trainable; 42.6 + 33.0 min; 8.95 GB
+- **Local val:** Stage-1 dev 13-label 0.4497 (Viterbi) vs 0.4082 (argmax); present 0.5314
+- **Codabench:** Macro-F1 0.5019, P 0.5374, R 0.4941 (submission.zip, Stage 2) — best of Phase 3
+- **Observations:** CRF +0.042 on dev; ArgumentRespondent recall 0.26 → 0.48; Stage 1/2 agree on 81.4% of test sentences
+- **Next step:** S5 (A + prefix tuning, CRF head) and S6 (KD with S7 as teacher)

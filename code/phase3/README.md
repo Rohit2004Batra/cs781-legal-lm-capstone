@@ -50,7 +50,7 @@ Submission: one `prediction.json` covering all 10 test docs (5 CL + 5 IT), `{doc
 | S1 | `P3_S1_C_LSTM_LORMA.ipynb` | C Stacked LSTM | LORMA (r=8, α=16) on all LSTM ih/hh weights + doc BiLSTM | 3.39M / 106.79M (LORMA 0.49M) | 24.6 min (20 ep, best 15) | 2.23 GB | 0.4762 (CL 0.390, IT 0.470) | **0.4024** (P 0.412, R 0.416) | |
 | S2 | `P3_S2_A_Decoder_LoRA.ipynb` | A Decoder-only | LoRA (r=8, α=16) on q/k/v/out of all 12 layers + doc BiLSTM | 2.96M / 127.99M (LoRA 0.59M) | 38.5 min (18 ep, best 13) | 6.67 GB | 0.4402 (13-label); 0.5202 present (CL 0.475, IT 0.531) | **0.4825** (P 0.535, R 0.540) | |
 | S3 | `P3_S3_B_Encoder_IA3.ipynb` | B Encoder–Decoder (encoder only) | IA³ on keys, values, FFN activations of 6 layers + doc BiLSTM | 2.40M / 84.12M (IA³ 27.6K) | 24.8 min (20 ep, best 15) | 4.29 GB | 0.2188 (13-label); 0.2586 present (CL 0.243, IT 0.262) | 0.2364 (P 0.308, R 0.252) | |
-| S7 | `P3_S7_A_LoRA_CRF_TrainDev.ipynb` | A Decoder-only | LoRA (attn + FFN, r=8) + doc BiLSTM-CRF; Stage 2 on train+dev | | | | | | |
+| S7 | `P3_S7_A_LoRA_CRF_TrainDev.ipynb` | A Decoder-only | LoRA (attn + FFN, r=8) + doc BiLSTM-CRF; Stage 2 on train+dev | 3.70M (LoRA 1.33M) | 42.6 + 33.0 min (Stage 1 best ep 11) | 8.95 GB | 0.4497 (13-label, Stage 1, Viterbi); 0.5314 present | **0.5019** (P 0.537, R 0.494) | |
 | S4 | `P3_S4_D_TCN_PromptTuning.ipynb` | D Dilated Residual TCN | Prompt tuning (20 soft tokens) + doc BiLSTM | 2.66M / 116.81M (prompt 20.5K) | 35.0 min (20 ep, best 20) | 3.50 GB | 0.3289 (13-label); 0.3886 present (CL 0.325, IT 0.405) | 0.3391 (P 0.363, R 0.347) | |
 
 ## Method details
@@ -105,6 +105,13 @@ Extra submission aimed at the leaderboard, built on S2 (same backbone and techni
 - **Still improving at the last epoch** (best = epoch 20, train loss 1.11): like IA³, prompt tuning is capacity-limited; more epochs would likely help a little.
 - **S4 > S3 with fewer adapter parameters** (20.5K vs 27.6K): the frozen D features are much better than the frozen B-encoder features (sentence-only probe 0.2263 vs 0.1167). Backbone quality matters more than the adapter's size at this scale.
 - Context gain: 0.2263 → 0.3289. Statute 0.77, RulingByPresentCourt 0.61, Fact 0.58 are solid; the two argument roles are weakest (ArgumentPetitioner 0.18, ArgumentRespondent 0.12) — separating who is arguing needs more than a soft prompt over a causal convolution.
+
+### S7 results (Stage 1 dev, best epoch 11, Viterbi)
+- Stage-1 dev Macro-F1 **0.4497** over 13 labels (P 0.5003, R 0.4260); 0.5314 over present labels (CL 0.4478, IT 0.4919). **Codabench 0.5019** (P 0.537, R 0.494) for `submission.zip` (Stage 2, train + dev) — **best Phase 3 result**, +0.019 over S2.
+- **CRF ablation:** the same Stage-1 model scores 0.4497 with Viterbi decoding vs 0.4082 with per-sentence argmax (+0.042). Viterbi won at 10 of 16 epochs, and every epoch from 4 onwards — the transition scores need a few epochs to become useful.
+- **Biggest per-class gains over S2:** ArgumentRespondent 0.34 → 0.48 (recall 0.26 → 0.48), Issue 0.52 → 0.55, PrecedentNotReliedUpon over-prediction reduced (P 0.12 → 0.26), RulingByPresentCourt 0.62 → 0.67. Role order (petitioner's arguments, then respondent's) is exactly what the transition matrix captures.
+- Stage 2 (train + dev) and Stage 1 agree on 81.4% of test sentences.
+- Cost: 3.70M trainable, 75.6 min for both stages, 8.95 GB — the most expensive run of the phase.
 
 Answer each "Expected Analysis" bullet from the capstone doc for this phase:
 - Which technique/model worked best, and why
