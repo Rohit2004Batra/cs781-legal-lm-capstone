@@ -50,6 +50,7 @@ Submission: one `prediction.json` covering all 10 test docs (5 CL + 5 IT), `{doc
 | S1 | `P3_S1_C_LSTM_LORMA.ipynb` | C Stacked LSTM | LORMA (r=8, α=16) on all LSTM ih/hh weights + doc BiLSTM | 3.39M / 106.79M (LORMA 0.49M) | 24.6 min (20 ep, best 15) | 2.23 GB | 0.4762 (CL 0.390, IT 0.470) | **0.4024** (P 0.412, R 0.416) | |
 | S2 | `P3_S2_A_Decoder_LoRA.ipynb` | A Decoder-only | LoRA (r=8, α=16) on q/k/v/out of all 12 layers + doc BiLSTM | 2.96M / 127.99M (LoRA 0.59M) | 38.5 min (18 ep, best 13) | 6.67 GB | 0.4402 (13-label); 0.5202 present (CL 0.475, IT 0.531) | **0.4825** (P 0.535, R 0.540) | |
 | S3 | `P3_S3_B_Encoder_IA3.ipynb` | B Encoder–Decoder (encoder only) | IA³ on keys, values, FFN activations of 6 layers + doc BiLSTM | 2.40M / 84.12M (IA³ 27.6K) | 24.8 min (20 ep, best 15) | 4.29 GB | 0.2188 (13-label); 0.2586 present (CL 0.243, IT 0.262) | 0.2364 (P 0.308, R 0.252) | |
+| S7 | `P3_S7_A_LoRA_CRF_TrainDev.ipynb` | A Decoder-only | LoRA (attn + FFN, r=8) + doc BiLSTM-CRF; Stage 2 on train+dev | | | | | | |
 | S4 | `P3_S4_D_TCN_PromptTuning.ipynb` | D Dilated Residual TCN | Prompt tuning (20 soft tokens) + doc BiLSTM | 2.66M / 116.81M (prompt 20.5K) | 35.0 min (20 ep, best 20) | 3.50 GB | 0.3289 (13-label); 0.3886 present (CL 0.325, IT 0.405) | 0.3391 (P 0.363, R 0.347) | |
 
 ## Method details
@@ -69,6 +70,9 @@ Only the 6-layer bidirectional encoder of B is used (decoder weights are verifie
 20 trainable soft-prompt vectors (initialised from embeddings of frequent tokens) are prepended to every sentence; the frozen causal TCN (receptive field ≈4,093 tokens) lets every sentence token see them, and prompt positions are dropped before pooling. 20,480 trainable backbone parameters (0.018%). Prompt tuning was chosen for D because it needs no change inside the network — attention-based adapters do not apply to a convolutional model. Adapter LR 1e-2; head and training otherwise identical to S1–S3.
 
 *Engineering note:* the first run took ~220 min per epoch and hit Kaggle's 12-hour limit after 3 epochs (dev Macro-F1 0.0587 → 0.1657 → 0.1790). Cause: PyTorch's dilated `Conv1d` with dilations up to 512 on ~148-token inputs (each conv left-padded by up to 1,024 zeros) falls back to a very slow kernel. The notebook now computes each causal convolution as one matrix multiply per kernel tap and skips taps whose shift exceeds the sequence length (they only ever read padding). This is mathematically identical to Phase 1 (max difference 7e-7 against the original weight-normalised `Conv1d` in testing) and uses the same weight names, so the Phase-1 checkpoint and the interrupted run's checkpoints both load unchanged.
+
+### S7 — Architecture A + LoRA (attention + FFN) + CRF, trained on train + dev
+Extra submission aimed at the leaderboard, built on S2 (same backbone and technique family): (1) LoRA also on `fc1`/`fc2` (1.33M LoRA parameters vs 0.59M); (2) a linear-chain CRF after the document BiLSTM (13×13 transition scores, Viterbi decoding; loss = CRF NLL + class-weighted CE); (3) two-stage training — Stage 1 on train selects the epoch *and* the decoding (Viterbi vs argmax) by dev Macro-F1; Stage 2 retrains from the Phase-1 weights on train + dev for that many epochs with the same schedule and writes `submission.zip` (Stage 1's predictions are kept as `submission_stage1.zip`). Not a new technique for the minimum-count rules — an improved S2.
 
 ## Analysis
 
