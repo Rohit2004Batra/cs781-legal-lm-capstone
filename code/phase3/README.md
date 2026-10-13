@@ -116,6 +116,13 @@ Identical to S7 except the adaptation method, so S5 vs S7 isolates **prefix tuni
 - Stage 2 (train + dev) and Stage 1 agree on 81.4% of test sentences.
 - Cost: 3.70M trainable, 75.6 min for both stages, 8.95 GB — the most expensive run of the phase.
 
+### S5 results (Stage 1 dev, best epoch 20, Viterbi)
+- Stage-1 dev Macro-F1 **0.4249** over 13 labels (P 0.5144, R 0.3943); 0.5021 over present labels (CL 0.4161, IT 0.4999). **Codabench 0.4527** (P 0.499, R 0.467).
+- **Prefix tuning vs LoRA (S5 vs S7, everything else identical):** 0.4249 vs 0.4497 on dev and 0.4527 vs 0.5019 on test — LoRA wins. Prefix tuning only adds tokens to attend to; it cannot change how a layer transforms its input, while LoRA edits the projections directly (including the FFN in S7).
+- **Still improving at the last epoch** (best = epoch 20, Viterbi rising 0.3857 → 0.4249 over the last 5 epochs) — prefix tuning learns more slowly; it needs more epochs than LoRA.
+- **Cheaper in memory:** 5.12 GB vs 8.95 GB for S7 (no LoRA activations through the FFN), similar time.
+- CRF gain is smaller than in S7 (+0.019 vs +0.042). Typical error: RatioOfTheDecision over-predicted (recall 0.82, precision 0.42); Statute is the best class of the phase (0.82).
+
 Answer each "Expected Analysis" bullet from the capstone doc for this phase:
 - Which technique/model worked best, and why
 - PEFT vs full adaptation

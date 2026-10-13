@@ -81,3 +81,12 @@ This is the raw material for the report and the viva — record it the day you r
 - **Codabench:** Macro-F1 0.5019, P 0.5374, R 0.4941 (submission.zip, Stage 2) — best of Phase 3
 - **Observations:** CRF +0.042 on dev; ArgumentRespondent recall 0.26 → 0.48; Stage 1/2 agree on 81.4% of test sentences
 - **Next step:** S5 (A + prefix tuning, CRF head) and S6 (KD with S7 as teacher)
+
+### 2026-10-13 · Phase 3 · P3_S5_A_Prefix_CRF_TrainDev
+- **Goal / hypothesis:** prefix tuning vs LoRA under an identical pipeline (S7's head, CRF, two stages).
+- **Technique:** prefix tuning, 20 virtual key/value tokens in each of 12 layers, MLP-reparameterised (9.86M params during training); LR 1e-3
+- **Cost:** 12.24M trainable; 41.3 + 46.7 min; 5.12 GB
+- **Local val:** Stage-1 dev 13-label 0.4249 (Viterbi) vs 0.4063 (argmax); present 0.5021; best epoch 20 (still rising)
+- **Codabench:** Macro-F1 0.4527, P 0.4992, R 0.4671
+- **Observations:** LoRA (S7) beats prefix tuning by 0.025 dev / 0.049 test; prefix learns slower; lower memory; Ratio over-predicted
+- **Next step:** S6 — knowledge distillation, S7 teacher → 6-layer student
