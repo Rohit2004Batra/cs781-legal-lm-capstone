@@ -141,6 +141,8 @@
 - **Output:** JSON **list**: `[{"id": "case_001", "pred": 1}, ...]` — int 0/1, one per case.
 - Long documents: chunking, sliding windows, hierarchical, attention pooling, section-aware selection.
 - Techniques list: full FT, partial/layer-wise, freezing/unfreezing, BitFit, **LORMA**, AdaLoRA, adapters, KD.
+- **Note:** plain LoRA, prefix/prompt tuning and IA³ are NOT on the Phase 4 list — the ≥4 distinct techniques must come from this list. Training must use only CJPE data + the Phase-1 model (Phase-3 weights cannot be reused as a starting point; code can).
+- Model must handle long documents (chunking / sliding windows / hierarchical / section selection) and compare full document vs selected sections vs hierarchical. Calibration and post-processing (e.g. decision threshold) are explicitly allowed.
 - **Metric:** Macro-F1 (secondary P, R) → care about both classes.
 
 ### Phase 5 — Legal Statute Identification (22–26 Oct)
