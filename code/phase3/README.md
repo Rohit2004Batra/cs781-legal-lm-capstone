@@ -74,6 +74,9 @@ Only the 6-layer bidirectional encoder of B is used (decoder weights are verifie
 ### S7 — Architecture A + LoRA (attention + FFN) + CRF, trained on train + dev
 Extra submission aimed at the leaderboard, built on S2 (same backbone and technique family): (1) LoRA also on `fc1`/`fc2` (1.33M LoRA parameters vs 0.59M); (2) a linear-chain CRF after the document BiLSTM (13×13 transition scores, Viterbi decoding; loss = CRF NLL + class-weighted CE); (3) two-stage training — Stage 1 on train selects the epoch *and* the decoding (Viterbi vs argmax) by dev Macro-F1; Stage 2 retrains from the Phase-1 weights on train + dev for that many epochs with the same schedule and writes `submission.zip` (Stage 1's predictions are kept as `submission_stage1.zip`). Not a new technique for the minimum-count rules — an improved S2.
 
+### S5 — Architecture A + Prefix tuning + CRF, trained on train + dev
+Identical to S7 except the adaptation method, so S5 vs S7 isolates **prefix tuning vs LoRA**. Every attention layer gets 20 learned key/value vectors that all real tokens can attend to (causality among real tokens is kept); the keys/values are produced by an MLP from 20 learned embeddings (Li & Liang's reparameterisation, ~9.9M parameters during training, 368,640 key/value numbers kept after training). The MLP's last layer starts at zero, so all prefixes start as zero vectors. Adapter LR 1e-3. Verified: without a prefix the backbone output equals S2's exactly; with a prefix, later tokens still cannot influence earlier ones.
+
 ## Analysis
 
 ### S1 results (dev, best epoch 15)
