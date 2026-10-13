@@ -60,3 +60,13 @@ This is the raw material for the report and the viva — record it the day you r
 - **What happened:** ~220 min/epoch; Kaggle 12 h limit hit after 3 epochs (dev 13-label 0.0587, 0.1657, 0.1790).
 - **Cause:** dilated Conv1d (dilation up to 512, left padding up to 1,024) on ~148-token inputs → slow cuDNN path.
 - **Fix:** causal conv rewritten as per-tap matrix multiplies, skipping taps that only read padding; exact (max diff 7e-7 vs Phase-1 implementation); same parameter names, so old checkpoints resume.
+
+### 2026-10-13 · Phase 3 · P3_S4_D_TCN_PromptTuning (rerun with fast convolution)
+- **Base model:** D TCN (`checkpoints/best.pt`, 114.16M); exact per-tap causal convolution
+- **Technique:** prompt tuning, 20 soft tokens initialised from frequent-token embeddings; LR 1e-2
+- **Cost:** 2.66M trainable / 116.81M; 35.0 min (1.8 min/epoch, was ~220); 3.5 GB
+- **Local val:** 13-label 0.3289 (P 0.3555, R 0.3236); present 0.3886; CL 0.3246, IT 0.4049; best epoch 20 (still rising)
+- **Ablation:** sentence-only 0.2263
+- **Codabench:** Macro-F1 0.3391, P 0.3630, R 0.3471
+- **Observations:** beats IA³ (S3) with fewer adapter params because D's frozen features are better; argument roles weakest
+- **Next step:** S5 = A + prefix tuning; S6 = knowledge distillation from S2 (A + LoRA)

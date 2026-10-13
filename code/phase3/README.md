@@ -50,7 +50,7 @@ Submission: one `prediction.json` covering all 10 test docs (5 CL + 5 IT), `{doc
 | S1 | `P3_S1_C_LSTM_LORMA.ipynb` | C Stacked LSTM | LORMA (r=8, α=16) on all LSTM ih/hh weights + doc BiLSTM | 3.39M / 106.79M (LORMA 0.49M) | 24.6 min (20 ep, best 15) | 2.23 GB | 0.4762 (CL 0.390, IT 0.470) | **0.4024** (P 0.412, R 0.416) | |
 | S2 | `P3_S2_A_Decoder_LoRA.ipynb` | A Decoder-only | LoRA (r=8, α=16) on q/k/v/out of all 12 layers + doc BiLSTM | 2.96M / 127.99M (LoRA 0.59M) | 38.5 min (18 ep, best 13) | 6.67 GB | 0.4402 (13-label); 0.5202 present (CL 0.475, IT 0.531) | **0.4825** (P 0.535, R 0.540) | |
 | S3 | `P3_S3_B_Encoder_IA3.ipynb` | B Encoder–Decoder (encoder only) | IA³ on keys, values, FFN activations of 6 layers + doc BiLSTM | 2.40M / 84.12M (IA³ 27.6K) | 24.8 min (20 ep, best 15) | 4.29 GB | 0.2188 (13-label); 0.2586 present (CL 0.243, IT 0.262) | 0.2364 (P 0.308, R 0.252) | |
-| S4 | `P3_S4_D_TCN_PromptTuning.ipynb` | D Dilated Residual TCN | Prompt tuning (20 soft tokens) + doc BiLSTM | | | | | | |
+| S4 | `P3_S4_D_TCN_PromptTuning.ipynb` | D Dilated Residual TCN | Prompt tuning (20 soft tokens) + doc BiLSTM | 2.66M / 116.81M (prompt 20.5K) | 35.0 min (20 ep, best 20) | 3.50 GB | 0.3289 (13-label); 0.3886 present (CL 0.325, IT 0.405) | 0.3391 (P 0.363, R 0.347) | |
 
 ## Method details
 ### Shared design (all submissions)
@@ -94,6 +94,13 @@ Only the 6-layer bidirectional encoder of B is used (decoder weights are verifie
 - **The frozen B-encoder features are the weakest starting point:** the sentence-only probe gives 0.1167, vs 0.2347 (C) and 0.2826 (A). IA³ cannot fix a representation that does not already separate the roles; LoRA/LORMA, which add new directions, can.
 - Statute (0.69) and RulingByPresentCourt (0.59) survive because they have strong lexical cues ("Section …", "appeal is dismissed"); roles that need discourse understanding (ArgumentPetitioner 0.12, PrecedentReliedUpon 0.18, RulingByLowerCourt 0.00, Issue 0.00) collapse.
 - Takeaway for the report: parameter efficiency has a floor — at ~0.03% trainable parameters the adapter lacks capacity on a backbone whose features do not already fit the task. Cheapest run (24.8 min, 4.29 GB).
+
+### S4 results (dev, best epoch 20)
+- Dev Macro-F1 **0.3289** over 13 labels (P 0.3555, R 0.3236); 0.3886 over present labels (CL 0.3246, IT 0.4049). **Codabench 0.3391** (P 0.363, R 0.347).
+- **Speed fix confirmed:** 1.8 min/epoch after the convolution rewrite vs ~220 min before (~120× faster) for identical outputs; 35 min total, 3.5 GB.
+- **Still improving at the last epoch** (best = epoch 20, train loss 1.11): like IA³, prompt tuning is capacity-limited; more epochs would likely help a little.
+- **S4 > S3 with fewer adapter parameters** (20.5K vs 27.6K): the frozen D features are much better than the frozen B-encoder features (sentence-only probe 0.2263 vs 0.1167). Backbone quality matters more than the adapter's size at this scale.
+- Context gain: 0.2263 → 0.3289. Statute 0.77, RulingByPresentCourt 0.61, Fact 0.58 are solid; the two argument roles are weakest (ArgumentPetitioner 0.18, ArgumentRespondent 0.12) — separating who is arguing needs more than a soft prompt over a causal convolution.
 
 Answer each "Expected Analysis" bullet from the capstone doc for this phase:
 - Which technique/model worked best, and why
