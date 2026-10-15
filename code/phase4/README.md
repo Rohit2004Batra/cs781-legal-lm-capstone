@@ -3,7 +3,9 @@
 **Window:** 17–21 Oct 2026 · **Metric:** Macro-F1 (secondary: Precision, Recall) · **Data:** `Phase_4_CJPE/` · **Min submissions:** 4
 
 ## Task & output format
-<one paragraph + the prediction.json shape>
+Predict the binary outcome (0/1) of each case from its judgment text. Submission: `prediction.json`, a JSON **list** `[{"id": "...", "pred": 0|1}, ...]` with one entry per test case, zipped at the root of `submission.zip`.
+
+**Leakage rule used in every Phase 4 notebook:** the 1,517 test cases also appear in `dev.json` with labels. They are excluded everywhere (no training, no model selection); epochs and decision thresholds are chosen on the remaining 1,988 "dev-clean" cases, and test labels are never read. Dev is never used for training in Phase 4.
 
 ## Data analysis
 Run `P4_data_analysis.ipynb` on Kaggle (CPU); full statistics in `results/phase4/p4_stats.json`.
@@ -29,14 +31,17 @@ Run `P4_data_analysis.ipynb` on Kaggle (CPU); full statistics in `results/phase4
 
 | # | Notebook | Base model | Technique | Trainable / total params | Train time | Peak GPU mem | Local val | Codabench | Sub ID |
 |---|---|---|---|---|---|---|---|---|---|
-| S1 | | | | | | | | | |
+| S1 | `P4_S1_A_LORMA.ipynb` | A Decoder-only | LORMA (r=8) on q/k/v/out + fc1/fc2; last 2×510-token chunks, attention pooling | | | | | | |
 | S2 | | | | | | | | | |
 | S3 | | | | | | | | | |
 | S4 | | | | | | | | | |
 
 ## Method details
-### S1 — <name>
-Architecture of head, pooling, context used, loss, key hyperparameters, why this choice.
+### Shared design
+Text lower-cased and whitespace-normalised (train is case-preserved, dev/test are lower-case); train de-duplicated (31.6k unique cases). Each case → its last 2 chunks of 510 BPE tokens (`[BOS] … [EOS]`); each chunk encoded by the adapted backbone (mean ⊕ final state → 512-d) + "position from the end" embedding → learned attention pooling over chunks → linear 2-way classifier. Class-weighted cross-entropy (balanced weights for the 59/41 train split); epoch and decision threshold chosen on dev-clean by Macro-F1. Section analysis on dev-clean: first 2 vs last 2 / 4 / 8 chunks; the best setting is used for test.
+
+### S1 — Architecture A + LORMA
+LORMA (compulsory): every q/k/v/out and fc1/fc2 projection in all 12 layers becomes `W_eff = (I + (α/r)·B·A)·W0` (r=8, α=16, B=0 at start; verified to equal Phase 1 before training). 3 epochs, batch 8 cases × 2 chunks, grad-accumulation 2, adapter LR 5e-4, head LR 1e-3, both T4s via DataParallel.
 
 ## Analysis
 Answer each "Expected Analysis" bullet from the capstone doc for this phase:
