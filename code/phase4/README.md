@@ -1,11 +1,12 @@
 # Phase 4 — Court Judgment Prediction
 
-**Window:** <dates> · **Metric:** <primary> (secondary: <…>) · **Data:** `Phase_N_<…>/`
+**Window:** 17–21 Oct 2026 · **Metric:** Macro-F1 (secondary: Precision, Recall) · **Data:** `Phase_4_CJPE/` · **Min submissions:** 4
 
 ## Task & output format
 <one paragraph + the prediction.json shape>
 
 ## Data analysis
+Run `P4_data_analysis.ipynb` on Kaggle (CPU); it writes `p4_stats.json` and `p4_samples.json`. Results: (to fill)
 - Sizes (train/dev/test), label distribution, document/sentence length stats
 - Observations that shaped the design (imbalance, long docs, domain differences)
 
