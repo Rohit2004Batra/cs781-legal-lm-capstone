@@ -1,0 +1,405 @@
+{
+  "files": {},
+  "fields": {
+    "train": {
+      "id": "str",
+      "text": "str",
+      "label": "int",
+      "expert_1": "NoneType",
+      "expert_2": "NoneType",
+      "expert_3": "NoneType",
+      "expert_4": "NoneType",
+      "expert_5": "NoneType"
+    },
+    "dev": {
+      "id": "str",
+      "text": "str",
+      "label": "int",
+      "expert_1": "NoneType",
+      "expert_2": "NoneType",
+      "expert_3": "NoneType",
+      "expert_4": "NoneType",
+      "expert_5": "NoneType"
+    },
+    "test": {
+      "id": "str",
+      "text": "str",
+      "label": "int",
+      "expert_1": "NoneType",
+      "expert_2": "NoneType",
+      "expert_3": "NoneType",
+      "expert_4": "NoneType",
+      "expert_5": "NoneType"
+    }
+  },
+  "label_key": "label",
+  "label_counts": {
+    "train": {
+      "0": 22067,
+      "1": 15320
+    },
+    "dev": {
+      "0": 1749,
+      "1": 1756
+    }
+  },
+  "n_cases": {
+    "train": 37387,
+    "dev": 3505,
+    "test": 1517
+  },
+  "chars": {
+    "train": {
+      "p0": 217,
+      "p10": 2453,
+      "p25": 6251,
+      "p50": 13023,
+      "p75": 23064,
+      "p90": 38996,
+      "p95": 54753,
+      "p99": 115746,
+      "p100": 2492701,
+      "mean": 19531
+    },
+    "dev": {
+      "p0": 434,
+      "p10": 7094,
+      "p25": 10803,
+      "p50": 16988,
+      "p75": 26860,
+      "p90": 41908,
+      "p95": 56223,
+      "p99": 111663,
+      "p100": 260198,
+      "mean": 22364
+    },
+    "test": {
+      "p0": 434,
+      "p10": 7157,
+      "p25": 11018,
+      "p50": 17320,
+      "p75": 27421,
+      "p90": 42859,
+      "p95": 58170,
+      "p99": 108673,
+      "p100": 233000,
+      "mean": 22697
+    }
+  },
+  "words": {
+    "train": {
+      "p0": 35,
+      "p10": 408,
+      "p25": 1047,
+      "p50": 2192,
+      "p75": 3877,
+      "p90": 6575,
+      "p95": 9195,
+      "p99": 19403,
+      "p100": 412606,
+      "mean": 3276
+    },
+    "dev": {
+      "p0": 73,
+      "p10": 1210,
+      "p25": 1830,
+      "p50": 2886,
+      "p75": 4569,
+      "p90": 7131,
+      "p95": 9447,
+      "p99": 18604,
+      "p100": 42198,
+      "mean": 3794
+    },
+    "test": {
+      "p0": 73,
+      "p10": 1212,
+      "p25": 1871,
+      "p50": 2940,
+      "p75": 4609,
+      "p90": 7302,
+      "p95": 10023,
+      "p99": 18235,
+      "p100": 40487,
+      "mean": 3850
+    }
+  },
+  "short_docs": {
+    "train": 50,
+    "dev": 0,
+    "test": 0
+  },
+  "tokens": {
+    "train": {
+      "p0": 53,
+      "p10": 495,
+      "p25": 1266,
+      "p50": 2643,
+      "p75": 4669,
+      "p90": 7890,
+      "p95": 11066,
+      "p99": 23257,
+      "p100": 488041,
+      "mean": 3945
+    },
+    "dev": {
+      "p0": 100,
+      "p10": 1586,
+      "p25": 2393,
+      "p50": 3775,
+      "p75": 6001,
+      "p90": 9234,
+      "p95": 12408,
+      "p99": 24322,
+      "p100": 58284,
+      "mean": 4972
+    },
+    "test": {
+      "p0": 100,
+      "p10": 1597,
+      "p25": 2433,
+      "p50": 3854,
+      "p75": 6068,
+      "p90": 9466,
+      "p95": 13095,
+      "p99": 23808,
+      "p100": 55144,
+      "mean": 5043
+    }
+  },
+  "chunks_512": {
+    "train": {
+      "p0": 1,
+      "p10": 1,
+      "p25": 3,
+      "p50": 6,
+      "p75": 10,
+      "p90": 16,
+      "p95": 22,
+      "p99": 46,
+      "p100": 957,
+      "mean": 8
+    },
+    "dev": {
+      "p0": 1,
+      "p10": 4,
+      "p25": 5,
+      "p50": 8,
+      "p75": 12,
+      "p90": 19,
+      "p95": 25,
+      "p99": 48,
+      "p100": 115,
+      "mean": 10
+    },
+    "test": {
+      "p0": 1,
+      "p10": 4,
+      "p25": 5,
+      "p50": 8,
+      "p75": 12,
+      "p90": 19,
+      "p95": 26,
+      "p99": 47,
+      "p100": 109,
+      "mean": 10
+    }
+  },
+  "tokens_per_word": {
+    "train": 1.204,
+    "dev": 1.31,
+    "test": 1.31
+  },
+  "tokens_by_label": {
+    "train": {
+      "0": {
+        "p25": 1211,
+        "p50": 2631,
+        "p75": 4713,
+        "mean": 4045
+      },
+      "1": {
+        "p25": 1345,
+        "p50": 2659,
+        "p75": 4627,
+        "mean": 3801
+      }
+    },
+    "dev": {
+      "0": {
+        "p25": 2420,
+        "p50": 3841,
+        "p75": 5993,
+        "mean": 5060
+      },
+      "1": {
+        "p25": 2376,
+        "p50": 3724,
+        "p75": 6035,
+        "mean": 4885
+      }
+    }
+  },
+  "overlap": {
+    "ids_train_dev": 0,
+    "ids_train_test": 0,
+    "ids_dev_test": 1517,
+    "text_train_dev": 0,
+    "text_train_test": 0,
+    "text_dev_test": 1517,
+    "duplicate_texts_within_train": 5734,
+    "train_duplicates_with_conflicting_labels": 0
+  },
+  "keywords": {
+    "train": {
+      "first_1000_label0": {
+        "allowed": 0.07,
+        "dismissed": 0.111,
+        "set aside": 0.044,
+        "quashed": 0.014,
+        "upheld": 0.022,
+        "affirmed": 0.017,
+        "remanded": 0.005,
+        "disposed": 0.042,
+        "appeal": 0.762,
+        "petition": 0.373,
+        "conviction": 0.0,
+        "acquitted": 0.033,
+        "costs": 0.0,
+        "accordingly": 0.022,
+        "hereby": 0.089
+      },
+      "first_1000_label1": {
+        "allowed": 0.087,
+        "dismissed": 0.111,
+        "set aside": 0.057,
+        "quashed": 0.021,
+        "upheld": 0.022,
+        "affirmed": 0.02,
+        "remanded": 0.005,
+        "disposed": 0.034,
+        "appeal": 0.8,
+        "petition": 0.316,
+        "conviction": 0.001,
+        "acquitted": 0.036,
+        "costs": 0.0,
+        "accordingly": 0.026,
+        "hereby": 0.101
+      },
+      "last_1000_label0": {
+        "allowed": 0.065,
+        "dismissed": 0.174,
+        "set aside": 0.066,
+        "quashed": 0.012,
+        "upheld": 0.02,
+        "affirmed": 0.013,
+        "remanded": 0.005,
+        "disposed": 0.032,
+        "appeal": 0.33,
+        "petition": 0.21,
+        "conviction": 0.001,
+        "acquitted": 0.011,
+        "costs": 0.001,
+        "accordingly": 0.092,
+        "hereby": 0.03
+      },
+      "last_1000_label1": {
+        "allowed": 0.189,
+        "dismissed": 0.069,
+        "set aside": 0.25,
+        "quashed": 0.029,
+        "upheld": 0.016,
+        "affirmed": 0.014,
+        "remanded": 0.012,
+        "disposed": 0.028,
+        "appeal": 0.373,
+        "petition": 0.176,
+        "conviction": 0.002,
+        "acquitted": 0.014,
+        "costs": 0.002,
+        "accordingly": 0.121,
+        "hereby": 0.032
+      }
+    },
+    "dev": {
+      "first_1000_label0": {
+        "allowed": 0.029,
+        "dismissed": 0.047,
+        "set aside": 0.022,
+        "quashed": 0.007,
+        "upheld": 0.003,
+        "affirmed": 0.012,
+        "remanded": 0.003,
+        "disposed": 0.015,
+        "appeal": 0.868,
+        "petition": 0.369,
+        "conviction": 0.006,
+        "acquitted": 0.015,
+        "costs": 0.001,
+        "accordingly": 0.009,
+        "hereby": 0.033
+      },
+      "first_1000_label1": {
+        "allowed": 0.025,
+        "dismissed": 0.046,
+        "set aside": 0.016,
+        "quashed": 0.016,
+        "upheld": 0.006,
+        "affirmed": 0.003,
+        "remanded": 0.002,
+        "disposed": 0.022,
+        "appeal": 0.893,
+        "petition": 0.313,
+        "conviction": 0.01,
+        "acquitted": 0.017,
+        "costs": 0.001,
+        "accordingly": 0.011,
+        "hereby": 0.03
+      },
+      "last_1000_label0": {
+        "allowed": 0.055,
+        "dismissed": 0.07,
+        "set aside": 0.03,
+        "quashed": 0.007,
+        "upheld": 0.014,
+        "affirmed": 0.008,
+        "remanded": 0.001,
+        "disposed": 0.013,
+        "appeal": 0.204,
+        "petition": 0.14,
+        "conviction": 0.001,
+        "acquitted": 0.002,
+        "costs": 0.006,
+        "accordingly": 0.034,
+        "hereby": 0.025
+      },
+      "last_1000_label1": {
+        "allowed": 0.112,
+        "dismissed": 0.036,
+        "set aside": 0.137,
+        "quashed": 0.017,
+        "upheld": 0.011,
+        "affirmed": 0.004,
+        "remanded": 0.007,
+        "disposed": 0.021,
+        "appeal": 0.274,
+        "petition": 0.149,
+        "conviction": 0.005,
+        "acquitted": 0.007,
+        "costs": 0.004,
+        "accordingly": 0.073,
+        "hereby": 0.022
+      }
+    }
+  },
+  "section_markers_train_sample": {
+    "facts": 0.832,
+    "arguments": 0.518,
+    "issue": 0.109,
+    "held": 0.751,
+    "order": 0.877,
+    "judgment": 0.838,
+    "section": 0.741,
+    "article": 0.285
+  }
+}
