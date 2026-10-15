@@ -100,3 +100,9 @@ This is the raw material for the report and the viva — record it the day you r
 - **Codabench:** Macro-F1 0.5184, P 0.5817, R 0.5020 — best of Phase 3
 - **Observations:** student > teacher on dev and test; soft labels regularise on a small corpus; biggest gains on argument roles and RulingByLowerCourt
 - **Phase 3 complete:** 7 submissions (S1–S7), all four backbones, LORMA + KD included
+
+### 2026-10-15 · Phase 4 · P4_S1_A_LORMA (first run — failed)
+- **Setup:** A + LORMA (attn + FFN, r=8), last 2×510-token chunks, chunk vector = mean ⊕ [EOS] state, attention over chunks; 3 epochs, 64 min on 2×T4, 3.18 GB
+- **Result:** collapse — P(label=1) ≈ 0.53 for every dev-clean case; Macro-F1 0.3333 at all thresholds/sections; train loss 0.73 → 0.70 (chance ≈ 0.69)
+- **Diagnosis (local tests):** pipeline can overfit 16 cases (gradients OK); chunk features nearly constant across cases (std 0.02 vs |x| 0.48); mean over 512 tokens + [EOS] state dilute decisive words
+- **Fix:** token-level attention pooling + LayerNorm in the chunk encoder; synthetic task 0.47 → 1.00 dev Macro-F1 by epoch 4; per-epoch prediction-spread warning added

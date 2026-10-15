@@ -38,7 +38,7 @@ Run `P4_data_analysis.ipynb` on Kaggle (CPU); full statistics in `results/phase4
 
 ## Method details
 ### Shared design
-Text lower-cased and whitespace-normalised (train is case-preserved, dev/test are lower-case); train de-duplicated (31.6k unique cases). Each case → its last 2 chunks of 510 BPE tokens (`[BOS] … [EOS]`); each chunk encoded by the adapted backbone (mean ⊕ final state → 512-d) + "position from the end" embedding → learned attention pooling over chunks → linear 2-way classifier. Class-weighted cross-entropy (balanced weights for the 59/41 train split); epoch and decision threshold chosen on dev-clean by Macro-F1. Section analysis on dev-clean: first 2 vs last 2 / 4 / 8 chunks; the best setting is used for test.
+Text lower-cased and whitespace-normalised (train is case-preserved, dev/test are lower-case); train de-duplicated (31.6k unique cases). Each case → its last 2 chunks of 510 BPE tokens (`[BOS] … [EOS]`); each chunk encoded by the adapted backbone; chunk vector = [mean ; final state ; token-level attention pooling] → LayerNorm → 512-d + "position from the end" embedding → learned attention pooling over chunks → linear 2-way classifier. Class-weighted cross-entropy (balanced weights for the 59/41 train split); epoch and decision threshold chosen on dev-clean by Macro-F1. Section analysis on dev-clean: first 2 vs last 2 / 4 / 8 chunks; the best setting is used for test.
 
 ### S1 — Architecture A + LORMA
 LORMA (compulsory): every q/k/v/out and fc1/fc2 projection in all 12 layers becomes `W_eff = (I + (α/r)·B·A)·W0` (r=8, α=16, B=0 at start; verified to equal Phase 1 before training). 3 epochs, batch 8 cases × 2 chunks, grad-accumulation 2, adapter LR 5e-4, head LR 1e-3, both T4s via DataParallel.
@@ -53,6 +53,7 @@ Answer each "Expected Analysis" bullet from the capstone doc for this phase:
 - Did Phase-1 representations transfer?
 
 ## What failed
+- **First S1 run (15 Oct): chunk vector = mean ⊕ final `[EOS]` state.** 3 epochs (64 min on 2×T4) and the model never left chance: every dev-clean case got P(label=1) ≈ 0.53, Macro-F1 0.3333 at every threshold and section setting. Diagnosis: averaging 512 token states — and the `[EOS]` state, which mostly encodes "end of text" — washes out the few decisive words; frozen features varied by only ~0.02 across cases (vs magnitude ~0.48), and even logistic regression on them was near chance on a synthetic task whose answer is in the last sentence. The pipeline itself could overfit 16 cases, so gradients were fine. **Fix:** token-level attention pooling inside each chunk (+ LayerNorm); on the same synthetic task it reaches dev Macro-F1 1.00 by epoch 4, where mean+`[EOS]` stays near chance. A "spread of predictions" readout per epoch now flags this kind of collapse immediately.
 Experiments that didn't work and the likely reason.
 
 ## Kaggle links
