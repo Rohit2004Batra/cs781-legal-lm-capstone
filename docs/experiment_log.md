@@ -106,3 +106,9 @@ This is the raw material for the report and the viva — record it the day you r
 - **Result:** collapse — P(label=1) ≈ 0.53 for every dev-clean case; Macro-F1 0.3333 at all thresholds/sections; train loss 0.73 → 0.70 (chance ≈ 0.69)
 - **Diagnosis (local tests):** pipeline can overfit 16 cases (gradients OK); chunk features nearly constant across cases (std 0.02 vs |x| 0.48); mean over 512 tokens + [EOS] state dilute decisive words
 - **Fix:** token-level attention pooling + LayerNorm in the chunk encoder; synthetic task 0.47 → 1.00 dev Macro-F1 by epoch 4; per-epoch prediction-spread warning added
+
+### 2026-10-15 · Phase 4 · P4_S1_A_LORMA (second run — failed again)
+- **Setup:** as first run + token-level attention pooling + LayerNorm in the chunk encoder
+- **Result:** identical predictions again (spread of P(label=1) 0.000 from epoch 1), train loss → 0.6935 ≈ ln 2, dev-clean Macro-F1 0.3333; 65 min on 2×T4
+- **Interpretation:** the model cannot fit even the training set → the problem is in what the real backbone produces for 512-token chunks (numerics or missing signal), not the pooling
+- **Next step:** P4_diagnostic.ipynb — numerical health of frozen A on 512-token chunks, logistic-regression probes on several frozen representations, TF-IDF text-only reference, before any further full run
