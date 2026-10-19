@@ -118,3 +118,11 @@ This is the raw material for the report and the viva — record it the day you r
 - **Frozen-feature probes (standardised logistic regression, dev-clean Macro-F1):** mean512 0.575, final512 0.551, max512 0.559, mean_last128 0.560, final_last128 0.576, mean_of_windows128 0.565
 - **TF-IDF reference:** last 3,000 chars 0.598; whole text 0.613
 - **Conclusion:** signal exists but is weak; S1 collapse caused by unstandardised features → per-dimension standardisation of token states (statistics from 512 frozen-model training chunks); verified on a synthetic reproduction (old head flat, new head 1.00 by epoch 4)
+
+### 2026-10-19 · Phase 4 · S1–S4 results (round with standardisation)
+- **S1 (A + LORMA):** collapsed again — dev-clean 0.3452, Codabench 0.3475 (P 0.503, R 0.988); 67.7 min
+- **S2 (C + layer-wise FT):** dev-clean 0.5580 (last 2) / 0.5615 (last 4, used); Codabench **0.5615** (P 0.574, R 0.503); 63.9 min — best Phase 4
+- **S3 (B + BitFit):** dev-clean 0.5312, spread 0.007; Codabench 0.4908 (P 0.502, R 0.634); 29.7 min
+- **S4 (D + adapters):** constant until late epoch 3; dev-clean 0.5778 (last 4); Codabench 0.5269 (P 0.534, R 0.478); 45.2 min
+- **Diagnosis:** only the LSTM (no dropout-sensitive outlier dims) learned cleanly; the frozen backbone ran in train mode, so dropout on A's massive dimensions injected train-only noise through the final LayerNorm. Diagnostic probes (eval mode) worked → consistent.
+- **Fix (S1 v4):** `model.backbone.eval()` inside the training loop. Synthetic reproduction 5 epochs: old 0.518→0.573 oscillating, new 0.544→0.639 monotonic.
