@@ -35,7 +35,7 @@ Run `P4_data_analysis.ipynb` on Kaggle (CPU); full statistics in `results/phase4
 | S2 | `P4_S2_C_LSTM_LayerwiseFT.ipynb` | C Stacked LSTM | Partial / layer-wise fine-tuning: top LSTM layer + final LayerNorm (LR 1e-4) | | 63.9 min | | dev-clean 0.5580 (last 2) / 0.5615 (last 4, used) | **0.5615** (P 0.574, R 0.503) | |
 | S3 | `P4_S3_B_Encoder_BitFit.ipynb` | B Encoder (6 layers) | BitFit: bias-only fine-tuning (LR 1e-3) | | 29.7 min | | dev-clean 0.5312 (spread 0.007, weak) | 0.4908 (P 0.502, R 0.634) | |
 | S4 | `P4_S4_D_TCN_Adapters.ipynb` | D Dilated Residual TCN | Bottleneck adapters (1024→64→1024) after each TCN block (LR 1e-3) | | 45.2 min | | dev-clean 0.5637 (last 2) / 0.5778 (last 4, used) | 0.5269 (P 0.534, R 0.478) | |
-| S5 | `P4_S5_KD_S2Teacher_C2LayerStudent.ipynb` | C, 2 of 3 LSTM layers (student) | Knowledge distillation from S2 (T=2, CE + T²·KL); student top layer + final norm tuned | | | | | | |
+| S5 | `P4_S5_KD_S2Teacher_C2LayerStudent.ipynb` | C, 2 of 3 LSTM layers (student) | Knowledge distillation from S2 (T=2, CE + T²·KL); student top layer + final norm tuned | | 49.5 min | | dev-clean 0.5905 (last 2) / 0.6129 (last 8, used); teacher 0.5615 | **0.5920** (P 0.603, R 0.552) | |
 
 ## Method details
 ### Shared design
@@ -51,6 +51,8 @@ LORMA (compulsory): every q/k/v/out and fc1/fc2 projection in all 12 layers beco
 
 ### S5 — Knowledge distillation (S2 teacher → 2-layer LSTM student)
 Teacher = P4_S2 rebuilt from its `best.pt` (3-layer C, top layer + final LayerNorm tuned) and re-checked on dev-clean; it labels every training case once with its best input setting (last 4 chunks), soft labels at T = 2 (cached). Student = Phase-1 C with only LSTM layers 0–1 (recurrent part 2/3 of the teacher's), layer 1 + final LayerNorm tuned, fresh case classifier; trained on the last 2 chunks with `class-weighted CE + 1.0 · T² · KL(teacher ‖ student)`, 3 epochs, otherwise identical to S2. Reports teacher vs student dev-clean Macro-F1, agreement, parameters, test-set prediction time and peak memory. S2's `tokens_cache.pt` is reused after a consistency check.
+
+**S5 result:** the student beats its teacher (dev-clean 0.5905 vs 0.5615 on the same last-2/4 setting; Codabench 0.5920 vs 0.5615) and agrees with it on 78% of dev-clean cases — as in Phase 3, soft labels act as a regulariser on a weak, noisy signal (the teacher saw 4 chunks, the student learns that context from 2). Section analysis: more context keeps helping (first 2: 0.541 → last 2: 0.591 → last 4: 0.602 → last 8: 0.613). Efficiency: total parameters fall only to ~87% (the 64M-parameter embedding dominates) and test prediction time was the same (22.5 s vs 22.8 s) — cuDNN pipelines LSTM layers and batch building on the CPU dominates, so removing one layer gives no wall-clock gain on a T4; the reported peak memory of the student (1.84 GB vs 1.38 GB) includes its optimiser state, which was still resident when it was measured.
 
 ## Analysis
 Answer each "Expected Analysis" bullet from the capstone doc for this phase:

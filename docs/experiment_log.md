@@ -131,3 +131,8 @@ This is the raw material for the report and the viva — record it the day you r
 - **v4:** frozen backbone in eval mode; still identical predictions after epoch 1 (spread warning) → stopped
 - **v5 design:** case vector = chunk-average of [mean ; final state] (1,536-d), standardised with train statistics, clipped ±10 → linear; Step 1 logistic-regression probe on frozen features of all 31.6k train cases (C ∈ {0.01, 0.1, 1}, chosen on dev-clean) copied into the classifier as epoch 0; Step 2 LORMA + classifier fine-tuning at LR 1e-4 for 2 epochs; best of epochs 0–2 kept
 - **Local check (synthetic, outlier dims):** probe 0.6333 reproduced exactly by the model; FT 0.6399; old-version checkpoints ignored on resume
+
+### 2026-10-19 · Phase 4 · P4_S5_KD_S2Teacher_C2LayerStudent (account rohitji1)
+- **Result:** dev-clean 0.5905 (last 2) / 0.6129 (last 8, used); Codabench **0.5920** (P 0.603, R 0.552) — best Phase 4; teacher (S2) 0.5615 → student keeps 105%; agreement 78%
+- **Training:** 3 epochs, 49.5 min; spread low at step 1000 (0.009) but learned by step 2000; KD loss 0.14 → 0.02
+- **Efficiency:** test prediction 22.8 s vs teacher 22.5 s (no gain: cuDNN layer pipelining + CPU batch building); peak memory figure for the student includes optimiser state
