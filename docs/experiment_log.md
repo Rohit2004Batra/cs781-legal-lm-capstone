@@ -140,4 +140,4 @@ This is the raw material for the report and the viva — record it the day you r
 ### 2026-10-19 · Phase 4 · P4_S1_A_LORMA v5 (LP-FT) — works
 - **Result:** dev-clean 0.6542 (epoch 1) → **0.6710** (epoch 2, threshold 0.41; P 0.678, R 0.673); 44.5 min training; still rising at the end
 - **Sections:** first 2 0.597 | last 2 0.671 (used) | last 4 0.670 | last 8 0.669
-- **Test:** 1,517 cases, predicted 876 × 0 / 641 × 1; Codabench pending
+- **Test:** 1,517 cases, predicted 876 × 0 / 641 × 1; Codabench **0.6732** (P 0.710, R 0.597) — best Phase 4, dev-clean estimate matched test (0.671 vs 0.673)
