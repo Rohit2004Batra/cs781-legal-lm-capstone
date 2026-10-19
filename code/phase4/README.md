@@ -35,6 +35,7 @@ Run `P4_data_analysis.ipynb` on Kaggle (CPU); full statistics in `results/phase4
 | S2 | `P4_S2_C_LSTM_LayerwiseFT.ipynb` | C Stacked LSTM | Partial / layer-wise fine-tuning: top LSTM layer + final LayerNorm (LR 1e-4) | | 63.9 min | | dev-clean 0.5580 (last 2) / 0.5615 (last 4, used) | **0.5615** (P 0.574, R 0.503) | |
 | S3 | `P4_S3_B_Encoder_BitFit.ipynb` | B Encoder (6 layers) | BitFit: bias-only fine-tuning (LR 1e-3) | | 29.7 min | | dev-clean 0.5312 (spread 0.007, weak) | 0.4908 (P 0.502, R 0.634) | |
 | S4 | `P4_S4_D_TCN_Adapters.ipynb` | D Dilated Residual TCN | Bottleneck adapters (1024→64→1024) after each TCN block (LR 1e-3) | | 45.2 min | | dev-clean 0.5637 (last 2) / 0.5778 (last 4, used) | 0.5269 (P 0.534, R 0.478) | |
+| S5 | `P4_S5_KD_S2Teacher_C2LayerStudent.ipynb` | C, 2 of 3 LSTM layers (student) | Knowledge distillation from S2 (T=2, CE + T²·KL); student top layer + final norm tuned | | | | | | |
 
 ## Method details
 ### Shared design
@@ -47,6 +48,9 @@ LORMA (compulsory): every q/k/v/out and fc1/fc2 projection in all 12 layers beco
 - **S2, C + partial/layer-wise fine-tuning:** embeddings and the two lower LSTM layers frozen; the top LSTM layer (input + recurrent weights and biases) and the final LayerNorm fully trained.
 - **S3, B encoder + BitFit:** only bias vectors trained (qkv/out, FFN, LayerNorm biases); decoder weights skipped; padding mask on bidirectional attention.
 - **S4, D + bottleneck adapters:** `x + W_up·GELU(W_down·x)` after each of the 10 frozen TCN blocks, `W_up = 0` at start (verified identical to Phase 1 before training); exact fast causal convolution from Phase 3.
+
+### S5 — Knowledge distillation (S2 teacher → 2-layer LSTM student)
+Teacher = P4_S2 rebuilt from its `best.pt` (3-layer C, top layer + final LayerNorm tuned) and re-checked on dev-clean; it labels every training case once with its best input setting (last 4 chunks), soft labels at T = 2 (cached). Student = Phase-1 C with only LSTM layers 0–1 (recurrent part 2/3 of the teacher's), layer 1 + final LayerNorm tuned, fresh case classifier; trained on the last 2 chunks with `class-weighted CE + 1.0 · T² · KL(teacher ‖ student)`, 3 epochs, otherwise identical to S2. Reports teacher vs student dev-clean Macro-F1, agreement, parameters, test-set prediction time and peak memory. S2's `tokens_cache.pt` is reused after a consistency check.
 
 ## Analysis
 Answer each "Expected Analysis" bullet from the capstone doc for this phase:
