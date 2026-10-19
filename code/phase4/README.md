@@ -32,9 +32,9 @@ Run `P4_data_analysis.ipynb` on Kaggle (CPU); full statistics in `results/phase4
 | # | Notebook | Base model | Technique | Trainable / total params | Train time | Peak GPU mem | Local val | Codabench | Sub ID |
 |---|---|---|---|---|---|---|---|---|---|
 | S1 | `P4_S1_A_LORMA.ipynb` | A Decoder-only | LORMA (r=8) on q/k/v/out + fc1/fc2; last 2×510-token chunks, attention pooling | | | | | | |
-| S2 | | | | | | | | | |
-| S3 | | | | | | | | | |
-| S4 | | | | | | | | | |
+| S2 | `P4_S2_C_LSTM_LayerwiseFT.ipynb` | C Stacked LSTM | Partial / layer-wise fine-tuning: top LSTM layer + final LayerNorm (LR 1e-4) | | | | | | |
+| S3 | `P4_S3_B_Encoder_BitFit.ipynb` | B Encoder (6 layers) | BitFit: bias-only fine-tuning (LR 1e-3) | | | | | | |
+| S4 | `P4_S4_D_TCN_Adapters.ipynb` | D Dilated Residual TCN | Bottleneck adapters (1024→64→1024) after each TCN block (LR 1e-3) | | | | | | |
 
 ## Method details
 ### Shared design
@@ -42,6 +42,11 @@ Text lower-cased and whitespace-normalised (train is case-preserved, dev/test ar
 
 ### S1 — Architecture A + LORMA
 LORMA (compulsory): every q/k/v/out and fc1/fc2 projection in all 12 layers becomes `W_eff = (I + (α/r)·B·A)·W0` (r=8, α=16, B=0 at start; verified to equal Phase 1 before training). 3 epochs, batch 8 cases × 2 chunks, grad-accumulation 2, adapter LR 5e-4, head LR 1e-3, both T4s via DataParallel.
+
+### S2–S4 — one technique per remaining architecture (same shared design and leak-free selection as S1)
+- **S2, C + partial/layer-wise fine-tuning:** embeddings and the two lower LSTM layers frozen; the top LSTM layer (input + recurrent weights and biases) and the final LayerNorm fully trained.
+- **S3, B encoder + BitFit:** only bias vectors trained (qkv/out, FFN, LayerNorm biases); decoder weights skipped; padding mask on bidirectional attention.
+- **S4, D + bottleneck adapters:** `x + W_up·GELU(W_down·x)` after each of the 10 frozen TCN blocks, `W_up = 0` at start (verified identical to Phase 1 before training); exact fast causal convolution from Phase 3.
 
 ## Analysis
 Answer each "Expected Analysis" bullet from the capstone doc for this phase:
