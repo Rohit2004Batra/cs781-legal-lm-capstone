@@ -31,10 +31,10 @@ Run `P4_data_analysis.ipynb` on Kaggle (CPU); full statistics in `results/phase4
 
 | # | Notebook | Base model | Technique | Trainable / total params | Train time | Peak GPU mem | Local val | Codabench | Sub ID |
 |---|---|---|---|---|---|---|---|---|---|
-| S1 | `P4_S1_A_LORMA.ipynb` | A Decoder-only | LORMA (r=8) on q/k/v/out + fc1/fc2; last 2×510-token chunks, attention pooling | | | 67.7 min | | dev-clean 0.3452 (collapsed; spread 0.000) | 0.3475 (P 0.503, R 0.988) | |
-| S2 | `P4_S2_C_LSTM_LayerwiseFT.ipynb` | C Stacked LSTM | Partial / layer-wise fine-tuning: top LSTM layer + final LayerNorm (LR 1e-4) | | | 63.9 min | | dev-clean 0.5580 (last 2) / 0.5615 (last 4, used) | **0.5615** (P 0.574, R 0.503) | |
-| S3 | `P4_S3_B_Encoder_BitFit.ipynb` | B Encoder (6 layers) | BitFit: bias-only fine-tuning (LR 1e-3) | | | 29.7 min | | dev-clean 0.5312 (spread 0.007, weak) | 0.4908 (P 0.502, R 0.634) | |
-| S4 | `P4_S4_D_TCN_Adapters.ipynb` | D Dilated Residual TCN | Bottleneck adapters (1024→64→1024) after each TCN block (LR 1e-3) | | | 45.2 min | | dev-clean 0.5637 (last 2) / 0.5778 (last 4, used) | 0.5269 (P 0.534, R 0.478) | |
+| S1 | `P4_S1_A_LORMA.ipynb` | A Decoder-only | LORMA (r=8) on q/k/v/out + fc1/fc2; last 2×510-token chunks, attention pooling | | 67.7 min | | dev-clean 0.3452 (collapsed; spread 0.000) | 0.3475 (P 0.503, R 0.988) | |
+| S2 | `P4_S2_C_LSTM_LayerwiseFT.ipynb` | C Stacked LSTM | Partial / layer-wise fine-tuning: top LSTM layer + final LayerNorm (LR 1e-4) | | 63.9 min | | dev-clean 0.5580 (last 2) / 0.5615 (last 4, used) | **0.5615** (P 0.574, R 0.503) | |
+| S3 | `P4_S3_B_Encoder_BitFit.ipynb` | B Encoder (6 layers) | BitFit: bias-only fine-tuning (LR 1e-3) | | 29.7 min | | dev-clean 0.5312 (spread 0.007, weak) | 0.4908 (P 0.502, R 0.634) | |
+| S4 | `P4_S4_D_TCN_Adapters.ipynb` | D Dilated Residual TCN | Bottleneck adapters (1024→64→1024) after each TCN block (LR 1e-3) | | 45.2 min | | dev-clean 0.5637 (last 2) / 0.5778 (last 4, used) | 0.5269 (P 0.534, R 0.478) | |
 
 ## Method details
 ### Shared design
