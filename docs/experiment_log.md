@@ -136,3 +136,8 @@ This is the raw material for the report and the viva — record it the day you r
 - **Result:** dev-clean 0.5905 (last 2) / 0.6129 (last 8, used); Codabench **0.5920** (P 0.603, R 0.552) — best Phase 4; teacher (S2) 0.5615 → student keeps 105%; agreement 78%
 - **Training:** 3 epochs, 49.5 min; spread low at step 1000 (0.009) but learned by step 2000; KD loss 0.14 → 0.02
 - **Efficiency:** test prediction 22.8 s vs teacher 22.5 s (no gain: cuDNN layer pipelining + CPU batch building); peak memory figure for the student includes optimiser state
+
+### 2026-10-19 · Phase 4 · P4_S1_A_LORMA v5 (LP-FT) — works
+- **Result:** dev-clean 0.6542 (epoch 1) → **0.6710** (epoch 2, threshold 0.41; P 0.678, R 0.673); 44.5 min training; still rising at the end
+- **Sections:** first 2 0.597 | last 2 0.671 (used) | last 4 0.670 | last 8 0.669
+- **Test:** 1,517 cases, predicted 876 × 0 / 641 × 1; Codabench pending

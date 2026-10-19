@@ -31,7 +31,7 @@ Run `P4_data_analysis.ipynb` on Kaggle (CPU); full statistics in `results/phase4
 
 | # | Notebook | Base model | Technique | Trainable / total params | Train time | Peak GPU mem | Local val | Codabench | Sub ID |
 |---|---|---|---|---|---|---|---|---|---|
-| S1 | `P4_S1_A_LORMA.ipynb` | A Decoder-only | LORMA (r=8) on q/k/v/out + fc1/fc2; last 2×510-token chunks, attention pooling | | 67.7 min | | dev-clean 0.3452 (collapsed; spread 0.000) | 0.3475 (P 0.503, R 0.988) | |
+| S1 | `P4_S1_A_LORMA.ipynb` | A Decoder-only | LORMA (r=8) on q/k/v/out + fc1/fc2, **LP-FT** (logistic-regression probe init → fine-tuning); last 2×510-token chunks | | 44.5 min (v5) | | dev-clean **0.6710** (v5, last 2, epoch 2); v1–v4 collapsed (0.345) | v5: pending (v3: 0.3475) | |
 | S2 | `P4_S2_C_LSTM_LayerwiseFT.ipynb` | C Stacked LSTM | Partial / layer-wise fine-tuning: top LSTM layer + final LayerNorm (LR 1e-4) | | 63.9 min | | dev-clean 0.5580 (last 2) / 0.5615 (last 4, used) | **0.5615** (P 0.574, R 0.503) | |
 | S3 | `P4_S3_B_Encoder_BitFit.ipynb` | B Encoder (6 layers) | BitFit: bias-only fine-tuning (LR 1e-3) | | 29.7 min | | dev-clean 0.5312 (spread 0.007, weak) | 0.4908 (P 0.502, R 0.634) | |
 | S4 | `P4_S4_D_TCN_Adapters.ipynb` | D Dilated Residual TCN | Bottleneck adapters (1024→64→1024) after each TCN block (LR 1e-3) | | 45.2 min | | dev-clean 0.5637 (last 2) / 0.5778 (last 4, used) | 0.5269 (P 0.534, R 0.478) | |
@@ -53,6 +53,8 @@ LORMA (compulsory): every q/k/v/out and fc1/fc2 projection in all 12 layers beco
 Teacher = P4_S2 rebuilt from its `best.pt` (3-layer C, top layer + final LayerNorm tuned) and re-checked on dev-clean; it labels every training case once with its best input setting (last 4 chunks), soft labels at T = 2 (cached). Student = Phase-1 C with only LSTM layers 0–1 (recurrent part 2/3 of the teacher's), layer 1 + final LayerNorm tuned, fresh case classifier; trained on the last 2 chunks with `class-weighted CE + 1.0 · T² · KL(teacher ‖ student)`, 3 epochs, otherwise identical to S2. Reports teacher vs student dev-clean Macro-F1, agreement, parameters, test-set prediction time and peak memory. S2's `tokens_cache.pt` is reused after a consistency check.
 
 **S5 result:** the student beats its teacher (dev-clean 0.5905 vs 0.5615 on the same last-2/4 setting; Codabench 0.5920 vs 0.5615) and agrees with it on 78% of dev-clean cases — as in Phase 3, soft labels act as a regulariser on a weak, noisy signal (the teacher saw 4 chunks, the student learns that context from 2). Section analysis: more context keeps helping (first 2: 0.541 → last 2: 0.591 → last 4: 0.602 → last 8: 0.613). Efficiency: total parameters fall only to ~87% (the 64M-parameter embedding dominates) and test prediction time was the same (22.5 s vs 22.8 s) — cuDNN pipelines LSTM layers and batch building on the CPU dominates, so removing one layer gives no wall-clock gain on a T4; the reported peak memory of the student (1.84 GB vs 1.38 GB) includes its optimiser state, which was still resident when it was measured.
+
+**S1 v5 (LP-FT) result:** learned from the first quick check (spread 0.16 at step 500) and kept improving — dev-clean 0.6542 after epoch 1, **0.6710** after epoch 2 (P 0.678, R 0.673; threshold 0.41); section analysis first 2: 0.597, last 2: 0.671, last 4: 0.670, last 8: 0.669. Fine-tuning from a probe-initialised head is what made LORMA work on A; the same LORMA from a random head collapsed in four runs.
 
 ## Analysis
 Answer each "Expected Analysis" bullet from the capstone doc for this phase:
