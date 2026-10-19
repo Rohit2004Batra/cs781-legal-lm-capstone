@@ -126,3 +126,8 @@ This is the raw material for the report and the viva — record it the day you r
 - **S4 (D + adapters):** constant until late epoch 3; dev-clean 0.5778 (last 4); Codabench 0.5269 (P 0.534, R 0.478); 45.2 min
 - **Diagnosis:** only the LSTM (no dropout-sensitive outlier dims) learned cleanly; the frozen backbone ran in train mode, so dropout on A's massive dimensions injected train-only noise through the final LayerNorm. Diagnostic probes (eval mode) worked → consistent.
 - **Fix (S1 v4):** `model.backbone.eval()` inside the training loop. Synthetic reproduction 5 epochs: old 0.518→0.573 oscillating, new 0.544→0.639 monotonic.
+
+### 2026-10-19 · Phase 4 · P4_S1 v4 (dropout off) — collapsed; v5 = LP-FT
+- **v4:** frozen backbone in eval mode; still identical predictions after epoch 1 (spread warning) → stopped
+- **v5 design:** case vector = chunk-average of [mean ; final state] (1,536-d), standardised with train statistics, clipped ±10 → linear; Step 1 logistic-regression probe on frozen features of all 31.6k train cases (C ∈ {0.01, 0.1, 1}, chosen on dev-clean) copied into the classifier as epoch 0; Step 2 LORMA + classifier fine-tuning at LR 1e-4 for 2 epochs; best of epochs 0–2 kept
+- **Local check (synthetic, outlier dims):** probe 0.6333 reproduced exactly by the model; FT 0.6399; old-version checkpoints ignored on resume
