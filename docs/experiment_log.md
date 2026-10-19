@@ -112,3 +112,9 @@ This is the raw material for the report and the viva — record it the day you r
 - **Result:** identical predictions again (spread of P(label=1) 0.000 from epoch 1), train loss → 0.6935 ≈ ln 2, dev-clean Macro-F1 0.3333; 65 min on 2×T4
 - **Interpretation:** the model cannot fit even the training set → the problem is in what the real backbone produces for 512-token chunks (numerics or missing signal), not the pooling
 - **Next step:** P4_diagnostic.ipynb — numerical health of frozen A on 512-token chunks, logistic-regression probes on several frozen representations, TF-IDF text-only reference, before any further full run
+
+### 2026-10-19 · Phase 4 · P4_diagnostic
+- **Numerics:** no inf/NaN; fp16 vs fp32 max diff 0.034; residual stream max |x| 45.9 vs mean 2.0 (a few massive, near-constant dims)
+- **Frozen-feature probes (standardised logistic regression, dev-clean Macro-F1):** mean512 0.575, final512 0.551, max512 0.559, mean_last128 0.560, final_last128 0.576, mean_of_windows128 0.565
+- **TF-IDF reference:** last 3,000 chars 0.598; whole text 0.613
+- **Conclusion:** signal exists but is weak; S1 collapse caused by unstandardised features → per-dimension standardisation of token states (statistics from 512 frozen-model training chunks); verified on a synthetic reproduction (old head flat, new head 1.00 by epoch 4)
