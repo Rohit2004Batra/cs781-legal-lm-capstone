@@ -147,3 +147,4 @@ This is the raw material for the report and the viva — record it the day you r
 - **Sections:** first 2 0.593 | last 2 0.695 (used) | last 4 0.689 | last 8 0.688
 - **Codabench:** **0.6795** (P 0.662, R 0.744), submission 1003655 — on the leaderboard
 - **Phase 4 Codabench ids:** S1 1003655 (0.6795), S5 1003023 (0.5920), S2 1002864 (0.5615), S3 1002653 (0.4908), S4 1002602 (0.5269)
+- **Probe only (epoch 0):** dev-clean 0.6063 (C = 0.01; 0.6060 / 0.6016 for C = 0.1 / 1.0); features of 31,652 + 1,988 cases in 8.0 min → LORMA fine-tuning adds +0.088 (0.6063 → 0.6947)
