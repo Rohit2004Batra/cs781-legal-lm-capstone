@@ -141,3 +141,9 @@ This is the raw material for the report and the viva — record it the day you r
 - **Result:** dev-clean 0.6542 (epoch 1) → **0.6710** (epoch 2, threshold 0.41; P 0.678, R 0.673); 44.5 min training; still rising at the end
 - **Sections:** first 2 0.597 | last 2 0.671 (used) | last 4 0.670 | last 8 0.669
 - **Test:** 1,517 cases, predicted 876 × 0 / 641 × 1; Codabench **0.6732** (P 0.710, R 0.597) — best Phase 4, dev-clean estimate matched test (0.671 vs 0.673)
+
+### 2026-10-20 · Phase 4 · P4_S1_A_LORMA v5, 4 epochs — final
+- **Per epoch (dev-clean, tuned threshold):** 0.6601 | 0.6750 | **0.6947** | 0.6901 → epoch 3 kept (P 0.696, R 0.695, threshold 0.41); 91.1 min
+- **Sections:** first 2 0.593 | last 2 0.695 (used) | last 4 0.689 | last 8 0.688
+- **Codabench:** **0.6795** (P 0.662, R 0.744), submission 1003655 — on the leaderboard
+- **Phase 4 Codabench ids:** S1 1003655 (0.6795), S5 1003023 (0.5920), S2 1002864 (0.5615), S3 1002653 (0.4908), S4 1002602 (0.5269)

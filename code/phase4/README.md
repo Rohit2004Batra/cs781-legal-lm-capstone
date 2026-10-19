@@ -31,11 +31,11 @@ Run `P4_data_analysis.ipynb` on Kaggle (CPU); full statistics in `results/phase4
 
 | # | Notebook | Base model | Technique | Trainable / total params | Train time | Peak GPU mem | Local val | Codabench | Sub ID |
 |---|---|---|---|---|---|---|---|---|---|
-| S1 | `P4_S1_A_LORMA.ipynb` | A Decoder-only | LORMA (r=8) on q/k/v/out + fc1/fc2, **LP-FT** (logistic-regression probe init → fine-tuning); last 2×510-token chunks | | 44.5 min (v5) | | dev-clean **0.6710** (v5, last 2, epoch 2); v1–v4 collapsed (0.345) | **0.6732** (P 0.710, R 0.597) (v3: 0.3475) | |
-| S2 | `P4_S2_C_LSTM_LayerwiseFT.ipynb` | C Stacked LSTM | Partial / layer-wise fine-tuning: top LSTM layer + final LayerNorm (LR 1e-4) | | 63.9 min | | dev-clean 0.5580 (last 2) / 0.5615 (last 4, used) | **0.5615** (P 0.574, R 0.503) | |
-| S3 | `P4_S3_B_Encoder_BitFit.ipynb` | B Encoder (6 layers) | BitFit: bias-only fine-tuning (LR 1e-3) | | 29.7 min | | dev-clean 0.5312 (spread 0.007, weak) | 0.4908 (P 0.502, R 0.634) | |
-| S4 | `P4_S4_D_TCN_Adapters.ipynb` | D Dilated Residual TCN | Bottleneck adapters (1024→64→1024) after each TCN block (LR 1e-3) | | 45.2 min | | dev-clean 0.5637 (last 2) / 0.5778 (last 4, used) | 0.5269 (P 0.534, R 0.478) | |
-| S5 | `P4_S5_KD_S2Teacher_C2LayerStudent.ipynb` | C, 2 of 3 LSTM layers (student) | Knowledge distillation from S2 (T=2, CE + T²·KL); student top layer + final norm tuned | | 49.5 min | | dev-clean 0.5905 (last 2) / 0.6129 (last 8, used); teacher 0.5615 | **0.5920** (P 0.603, R 0.552) | |
+| S1 | `P4_S1_A_LORMA.ipynb` | A Decoder-only | LORMA (r=8) on q/k/v/out + fc1/fc2, **LP-FT** (logistic-regression probe init → 4 epochs fine-tuning); last 2×510-token chunks | | 91.1 min | | dev-clean **0.6947** (epoch 3 of 4, last 2); 2-epoch run 0.6710; v1–v4 collapsed | **0.6795** (P 0.662, R 0.744); 2-epoch run 0.6732; v3 0.3475 | 1003655 |
+| S2 | `P4_S2_C_LSTM_LayerwiseFT.ipynb` | C Stacked LSTM | Partial / layer-wise fine-tuning: top LSTM layer + final LayerNorm (LR 1e-4) | | 63.9 min | | dev-clean 0.5580 (last 2) / 0.5615 (last 4, used) | **0.5615** (P 0.574, R 0.503) | 1002864 |
+| S3 | `P4_S3_B_Encoder_BitFit.ipynb` | B Encoder (6 layers) | BitFit: bias-only fine-tuning (LR 1e-3) | | 29.7 min | | dev-clean 0.5312 (spread 0.007, weak) | 0.4908 (P 0.502, R 0.634) | 1002653 |
+| S4 | `P4_S4_D_TCN_Adapters.ipynb` | D Dilated Residual TCN | Bottleneck adapters (1024→64→1024) after each TCN block (LR 1e-3) | | 45.2 min | | dev-clean 0.5637 (last 2) / 0.5778 (last 4, used) | 0.5269 (P 0.534, R 0.478) | 1002602 |
+| S5 | `P4_S5_KD_S2Teacher_C2LayerStudent.ipynb` | C, 2 of 3 LSTM layers (student) | Knowledge distillation from S2 (T=2, CE + T²·KL); student top layer + final norm tuned | | 49.5 min | | dev-clean 0.5905 (last 2) / 0.6129 (last 8, used); teacher 0.5615 | **0.5920** (P 0.603, R 0.552) | 1003023 |
 
 ## Method details
 ### Shared design
@@ -54,7 +54,7 @@ Teacher = P4_S2 rebuilt from its `best.pt` (3-layer C, top layer + final LayerNo
 
 **S5 result:** the student beats its teacher (dev-clean 0.5905 vs 0.5615 on the same last-2/4 setting; Codabench 0.5920 vs 0.5615) and agrees with it on 78% of dev-clean cases — as in Phase 3, soft labels act as a regulariser on a weak, noisy signal (the teacher saw 4 chunks, the student learns that context from 2). Section analysis: more context keeps helping (first 2: 0.541 → last 2: 0.591 → last 4: 0.602 → last 8: 0.613). Efficiency: total parameters fall only to ~87% (the 64M-parameter embedding dominates) and test prediction time was the same (22.5 s vs 22.8 s) — cuDNN pipelines LSTM layers and batch building on the CPU dominates, so removing one layer gives no wall-clock gain on a T4; the reported peak memory of the student (1.84 GB vs 1.38 GB) includes its optimiser state, which was still resident when it was measured.
 
-**S1 v5 (LP-FT) result:** learned from the first quick check (spread 0.16 at step 500) and kept improving — dev-clean 0.6542 after epoch 1, **0.6710** after epoch 2 (P 0.678, R 0.673; threshold 0.41); section analysis first 2: 0.597, last 2: 0.671, last 4: 0.670, last 8: 0.669. Fine-tuning from a probe-initialised head is what made LORMA work on A; the same LORMA from a random head collapsed in four runs.
+**S1 v5 (LP-FT) result:** learned from the first quick check (spread 0.16 at step 500) and kept improving — dev-clean 0.6542 after epoch 1, **0.6710** after epoch 2 (P 0.678, R 0.673; threshold 0.41); section analysis first 2: 0.597, last 2: 0.671, last 4: 0.670, last 8: 0.669. **4-epoch rerun (final submission):** dev-clean 0.6601 → 0.6750 → **0.6947** → 0.6901 (epoch 3 kept; P 0.696, R 0.695); Codabench **0.6795** (P 0.662, R 0.744). Sections: first 2 0.593, last 2 0.695 (used), last 4 0.689, last 8 0.688. Fine-tuning from a probe-initialised head is what made LORMA work on A; the same LORMA from a random head collapsed in four runs.
 
 ## Analysis
 Answer each "Expected Analysis" bullet from the capstone doc for this phase:
