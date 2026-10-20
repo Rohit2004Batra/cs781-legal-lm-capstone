@@ -1,38 +1,21 @@
-# Phase 5 — Legal Statute Identification
+# Phase 5 — Legal Statute Identification (multi-label)
 
-**Window:** <dates> · **Metric:** <primary> (secondary: <…>) · **Data:** `Phase_N_<…>/`
+22–26 Oct 2026 (deadline 26 Oct, 11:59 PM IST). Primary metric **Macro-F1** (secondary Micro-F1, subset accuracy).
+Output: JSON list `[{"id": ..., "pred": [int, ...]}]`, valid and unique statute IDs, one entry per test case.
 
-## Task & output format
-<one paragraph + the prediction.json shape>
+## Rules that shape the plan
+- Best four submissions must involve **different Phase-1 models** (A, B, C, D); ≥3 different fine-tuning/PEFT techniques, **LORMA compulsory**; ≥1 **knowledge-distillation** experiment (counts as one of the four).
+- Every experiment starts from the **Phase-1** weights (Phase 4 weights are not used as initialisation).
 
-## Data analysis
-- Sizes (train/dev/test), label distribution, document/sentence length stats
-- Observations that shaped the design (imbalance, long docs, domain differences)
+## Plan
+| # | Model | Technique |
+|---|---|---|
+| S1 | A decoder | LORMA with LP-FT (probe-initialised multi-label head → fine-tuning); KD teacher |
+| S2 | C stacked LSTM | Layer-wise fine-tuning with LP-FT |
+| S3 | D TCN | Bottleneck adapters with LP-FT |
+| S4 | B encoder (student) | LoRA + knowledge distillation from S1 |
 
-## Submissions
+Shared: chunks across the whole document with max/mean pooling, BCE with capped positive weights, per-statute thresholds tuned on dev (global fallback for statutes with few dev cases), at least one statute per case.
 
-| # | Notebook | Base model | Technique | Trainable / total params | Train time | Peak GPU mem | Local val | Codabench | Sub ID |
-|---|---|---|---|---|---|---|---|---|---|
-| S1 | | | | | | | | | |
-| S2 | | | | | | | | | |
-| S3 | | | | | | | | | |
-| S4 | | | | | | | | | |
-
-## Method details
-### S1 — <name>
-Architecture of head, pooling, context used, loss, key hyperparameters, why this choice.
-
-## Analysis
-Answer each "Expected Analysis" bullet from the capstone doc for this phase:
-- Which technique/model worked best, and why
-- PEFT vs full adaptation
-- Effect of context / long-document strategy
-- Hard classes and error examples
-- Did KD preserve performance? Size/memory/latency trade-off
-- Did Phase-1 representations transfer?
-
-## What failed
-Experiments that didn't work and the likely reason.
-
-## Kaggle links
-Notebooks, output datasets, checkpoints.
+## Notebooks
+- `P5_data_analysis.ipynb` — label distribution and rarity, labels per case, co-occurrence, lengths, split overlaps (leakage), statute references in the text and their association with labels.
