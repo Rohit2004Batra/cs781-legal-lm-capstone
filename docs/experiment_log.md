@@ -148,3 +148,9 @@ This is the raw material for the report and the viva — record it the day you r
 - **Codabench:** **0.6795** (P 0.662, R 0.744), submission 1003655 — on the leaderboard
 - **Phase 4 Codabench ids:** S1 1003655 (0.6795), S5 1003023 (0.5920), S2 1002864 (0.5615), S3 1002653 (0.4908), S4 1002602 (0.5269)
 - **Probe only (epoch 0):** dev-clean 0.6063 (C = 0.01; 0.6060 / 0.6016 for C = 0.1 / 1.0); features of 31,652 + 1,988 cases in 8.0 min → LORMA fine-tuning adds +0.088 (0.6063 → 0.6947)
+
+### 2026-10-20 · Phase 5 · S1–S3 (dev results; Codabench opens 22 Oct)
+- **S1 A + LORMA LP-FT:** probe 0.2705 → 0.2844 → 0.2951 → **0.2979** (cross-fitted per-statute Macro-F1); Micro-F1 0.401; 162.8 min; test setting evidence_16 (0.2981)
+- **S2 C + layer-wise FT LP-FT:** 0.2414 → 0.2519 → 0.2635 → 0.2728; Micro 0.373; 146.6 min
+- **S3 D + adapters LP-FT:** 0.2286 → 0.2341 → 0.2601 → 0.2707; Micro 0.381; 100.3 min
+- All still improving at epoch 3; ~5.8 predicted statutes per case vs 3.9 gold; first-chunk-only loses ~0.035; evidence selection marginally best

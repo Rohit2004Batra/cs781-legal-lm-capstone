@@ -31,6 +31,22 @@ Output: JSON list `[{"id": ..., "pred": [int, ...]}]`, valid and unique statute 
 
 Shared: chunks across the whole document with max/mean pooling, BCE with capped positive weights, per-statute thresholds tuned on dev (global fallback for statutes with few dev cases), at least one statute per case.
 
+## Results (dev, 10,181 cases; Macro-F1 with per-statute thresholds, cross-fitted)
+| # | Notebook | Model + technique | Trainable / total params | Train time | Probe (epoch 0) | Ep 1 | Ep 2 | Ep 3 (best) | Global thr. | Micro-F1 | Test setting | Codabench |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| S1 | `P5_S1_A_LORMA.ipynb` | A + LORMA, LP-FT | 1.63M / 126.7M (1.29%) | 162.8 min | 0.2705 | 0.2844 | 0.2951 | **0.2979** | 0.2981 | 0.4014 | evidence_16 | pending (opens 22 Oct) |
+| S2 | `P5_S2_C_LSTM_LayerwiseFT.ipynb` | C + layer-wise FT, LP-FT | 13.63M / 103.9M (13.1%) | 146.6 min | 0.2414 | 0.2519 | 0.2635 | 0.2728 | 0.2705 | 0.3728 | evidence_8 | pending |
+| S3 | `P5_S3_D_TCN_Adapters.ipynb` | D + adapters, LP-FT | 1.73M / 115.9M (1.49%) | 100.3 min | 0.2286 | 0.2341 | 0.2601 | 0.2707 | 0.2660 | 0.3810 | evidence_8 | pending |
+
+Findings:
+- **Phase-1 representations carry statute information:** a linear probe on frozen features already gives 0.23–0.27; fine-tuning adds +0.027 (A), +0.031 (C), +0.042 (D). All three were still improving at epoch 3.
+- **Ranking A > C ≈ D**, as in Phase 4. LORMA tunes 1.3% of A and beats layer-wise tuning of 13% of C.
+- **Rare statutes:** per-statute F1 rises with training frequency in every model (S1: Q1 0.199 → Q4 0.449; rank correlation ≈ 0.6). Some mid-frequency statutes are easy (20, 28 ≈ 0.75 F1 — a strongly co-occurring pair), some frequent ones hard (52, 1,073 cases, F1 ≤ 0.11).
+- **Cases with more statutes are easier per statute** (example F1: 1 statute 0.21 → 7+ statutes 0.48 for S1).
+- **Typical errors:** missing a specific statute and predicting a generic frequent one instead (e.g. missed 12/13/14 → predicted 5; missed 34/77/61 → predicted 97).
+- **Thresholds:** per-statute thresholds tuned and scored on the same dev data overstate Macro-F1 by ~0.015; cross-fitted per-statute thresholds ≈ one global threshold for S1, slightly better for S2/S3. All models predict ~5.8 statutes per case vs 3.9 gold (recall-leaning, which is what maximises per-statute F1 here).
+- **Sections:** reading only the first chunk loses 0.034–0.037; evidence-based selection is best for all three, but only +0.002–0.003 over first/evenly spaced 8 chunks (≥ 92% of cases fit in 8 chunks anyway).
+
 ## Notebooks
 - `P5_S3_D_TCN_Adapters.ipynb` — D + 64-d bottleneck adapters after every TCN block (identity at start), same LP-FT multi-label pipeline; adapter LR 3e-4, head 1e-4, frozen TCN without dropout. Local test (synthetic): probe 0.971 → 0.972.
 - `P5_S2_C_LSTM_LayerwiseFT.ipynb` — C + layer-wise fine-tuning (top LSTM layer + final LayerNorm), same LP-FT multi-label pipeline as S1 (LSTM kept in train mode for cuDNN). Local test (synthetic): probe 0.91 → 0.91.
