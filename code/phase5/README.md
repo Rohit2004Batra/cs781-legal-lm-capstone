@@ -37,6 +37,8 @@ Shared: chunks across the whole document with max/mean pooling, BCE with capped 
 | S1 | `P5_S1_A_LORMA.ipynb` | A + LORMA, LP-FT | 1.63M / 126.7M (1.29%) | 162.8 min | 0.2705 | 0.2844 | 0.2951 | **0.2979** | 0.2981 | 0.4014 | evidence_16 | pending (opens 22 Oct) |
 | S2 | `P5_S2_C_LSTM_LayerwiseFT.ipynb` | C + layer-wise FT, LP-FT | 13.63M / 103.9M (13.1%) | 146.6 min | 0.2414 | 0.2519 | 0.2635 | 0.2728 | 0.2705 | 0.3728 | evidence_8 | pending |
 | S3 | `P5_S3_D_TCN_Adapters.ipynb` | D + adapters, LP-FT | 1.73M / 115.9M (1.49%) | 100.3 min | 0.2286 | 0.2341 | 0.2601 | 0.2707 | 0.2660 | 0.3810 | evidence_8 | pending |
+| S4 | `P5_S4_KD_Ensemble_to_BEncoder_LoRA.ipynb` | KD: S1+S2+S3 ensemble → B encoder + LoRA | 0.90M / 82.6M (1.09%) | 73.0 min | 0.1644 | 0.1681 | 0.2059 | 0.2152 | 0.2056 | 0.3101 | evidence_16 | pending |
+| (teacher) | ensemble of S1+S2+S3 logits | average probability | — / 346.5M | — | — | — | — | **0.3119** | 0.3063 | 0.4098 | — | not submitted yet |
 
 Findings:
 - **Phase-1 representations carry statute information:** a linear probe on frozen features already gives 0.23–0.27; fine-tuning adds +0.027 (A), +0.031 (C), +0.042 (D). All three were still improving at epoch 3.
@@ -46,6 +48,8 @@ Findings:
 - **Typical errors:** missing a specific statute and predicting a generic frequent one instead (e.g. missed 12/13/14 → predicted 5; missed 34/77/61 → predicted 97).
 - **Thresholds:** per-statute thresholds tuned and scored on the same dev data overstate Macro-F1 by ~0.015; cross-fitted per-statute thresholds ≈ one global threshold for S1, slightly better for S2/S3. All models predict ~5.8 statutes per case vs 3.9 gold (recall-leaning, which is what maximises per-statute F1 here).
 - **Sections:** reading only the first chunk loses 0.034–0.037; evidence-based selection is best for all three, but only +0.002–0.003 over first/evenly spaced 8 chunks (≥ 92% of cases fit in 8 chunks anyway).
+
+**S4 (knowledge distillation):** the S1+S2+S3 ensemble is a genuinely stronger teacher (0.3119 vs 0.2981 for S1, +0.014). The B-encoder student (82.6M parameters, 24% of the teacher's 346.5M; 0.9M trained) keeps 69% of the teacher's Macro-F1 (0.2152) and agrees with it on 93.7% of (case, statute) decisions; test prediction 212 s on one T4. Frozen B features are the weakest of the four models (probe 0.164 vs 0.229–0.271), and fine-tuning with the teacher's soft targets added the largest gain of all runs (+0.051), still rising at epoch 3. Rare statutes suffer most in the student (Q1 0.105 vs 0.199 for S1).
 
 ## Notebooks
 - `P5_S4_KD_Ensemble_to_BEncoder_LoRA.ipynb` — knowledge distillation: teacher = average probability of S1+S2+S3 (≈346M parameters; logits from `Phase5_S{1,2,3}_Dataset`, ids and statute IDs verified), student = Phase-1 B encoder (≈81M) + LoRA r=8 on qkv/out/fc1/fc2; loss = weighted BCE + 1.0·T²·BCE(σ(s/T), teacher soft targets), T = 2; same LP-FT multi-label pipeline. Local test: teacher ensemble > best member (+0.008), student 99.4% of teacher.

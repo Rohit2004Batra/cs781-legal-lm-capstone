@@ -154,3 +154,8 @@ This is the raw material for the report and the viva — record it the day you r
 - **S2 C + layer-wise FT LP-FT:** 0.2414 → 0.2519 → 0.2635 → 0.2728; Micro 0.373; 146.6 min
 - **S3 D + adapters LP-FT:** 0.2286 → 0.2341 → 0.2601 → 0.2707; Micro 0.381; 100.3 min
 - All still improving at epoch 3; ~5.8 predicted statutes per case vs 3.9 gold; first-chunk-only loses ~0.035; evidence selection marginally best
+
+### 2026-10-20 · Phase 5 · S4 KD (S1+S2+S3 ensemble → B encoder + LoRA)
+- **Teacher (dev, cross-fitted):** S1 0.2981 (evidence_16 logits), S2 0.2728, S3 0.2707 → ensemble **0.3119** (+0.014 over S1); 346.5M parameters
+- **Student:** B encoder 81.7M + LoRA r=8 (0.59M) + head; probe 0.1644 → 0.1681 → 0.2059 → **0.2152**; keeps 69.0% of teacher; agreement 93.7%; 73.0 min; test prediction 212 s on one GPU; evidence_16 for test
+- **Idea:** the ensemble itself is the best dev model → candidate extra submission
