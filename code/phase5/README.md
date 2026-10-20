@@ -32,5 +32,6 @@ Output: JSON list `[{"id": ..., "pred": [int, ...]}]`, valid and unique statute 
 Shared: chunks across the whole document with max/mean pooling, BCE with capped positive weights, per-statute thresholds tuned on dev (global fallback for statutes with few dev cases), at least one statute per case.
 
 ## Notebooks
+- `P5_S2_C_LSTM_LayerwiseFT.ipynb` — C + layer-wise fine-tuning (top LSTM layer + final LayerNorm), same LP-FT multi-label pipeline as S1 (LSTM kept in train mode for cuDNN). Local test (synthetic): probe 0.91 → 0.91.
 - `P5_S1_A_LORMA.ipynb` — A + LORMA, LP-FT (100-output probe → fine-tuning), evidence-based chunk selection (≤8 chunks), case = [mean ; max] over chunks, BCE with capped √(neg/pos) positive weights, per-statute thresholds (cross-fitted dev estimate), section analysis, saves `outputs/teacher_logits.pt` for S4. Local test on synthetic data: easy task probe 0.98 Macro-F1 → fine-tuning 0.98; full pipeline incl. submission format and teacher outputs runs end to end.
 - `P5_data_analysis.ipynb` — label distribution and rarity, labels per case, co-occurrence, lengths, split overlaps (leakage), statute references in the text and their association with labels.
