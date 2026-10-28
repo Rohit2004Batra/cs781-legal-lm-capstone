@@ -18,3 +18,6 @@ Output: JSON list `[{"id": ..., "summary": "..."}]` (object format also accepted
 | S4 | C stacked LSTM (smaller student) | Knowledge distillation from S1 (token-level, teacher-forced logits on the reference summaries) | prefix-LM |
 
 Shared: held-out validation split from train (selection by ROUGE-1/ROUGE-L and summary length); importance-based context selection for long documents; decoding with repetition blocking and a length target tuned on validation.
+
+## Notebooks
+- `P6_data_analysis.ipynb` — lengths (words / BPE tokens), share of documents within 512–4,096 tokens, where summary content comes from (position deciles), abstractiveness (novel n-grams), ROUGE of lead / tail / Luhn / greedy-oracle extractive baselines, summary openings, overlaps, and the context limits of the four Phase-1 models.
