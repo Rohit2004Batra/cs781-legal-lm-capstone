@@ -46,7 +46,7 @@ Tokenizer: byte-level BPE, vocab 50,000, special tokens `[PAD]`=0 `[UNK]`=1 `[BO
 | 2 | Legal NER | Strict Macro-F1 | 0.4912 | S3 | C (Stacked LSTM) + LORMA |
 | 3 | Rhetorical Role | Macro-F1 | 0.5184 | S6 | KD: S7 teacher → 6-layer A student (LoRA + BiLSTM-CRF) |
 | 4 | Judgment Prediction | Macro-F1 | 0.6795 | S1 | A (Decoder) + LORMA, LP-FT (linear-probe init → 4 epochs fine-tuning) |
-| 5 | Statute Identification | Macro-F1 | | | |
+| 5 | Statute Identification | Macro-F1 | 0.3037 | S1 | A (Decoder) + LORMA, LP-FT, multi-label (per-statute thresholds) |
 | 6 | Summarization | BERTScore F1 | | | |
 | 7 | Prior Case Retrieval | Micro-F1@7 | | | |
 

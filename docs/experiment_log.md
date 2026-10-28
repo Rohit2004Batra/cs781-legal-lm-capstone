@@ -159,3 +159,7 @@ This is the raw material for the report and the viva — record it the day you r
 - **Teacher (dev, cross-fitted):** S1 0.2981 (evidence_16 logits), S2 0.2728, S3 0.2707 → ensemble **0.3119** (+0.014 over S1); 346.5M parameters
 - **Student:** B encoder 81.7M + LoRA r=8 (0.59M) + head; probe 0.1644 → 0.1681 → 0.2059 → **0.2152**; keeps 69.0% of teacher; agreement 93.7%; 73.0 min; test prediction 212 s on one GPU; evidence_16 for test
 - **Idea:** the ensemble itself is the best dev model → candidate extra submission
+
+### 2026-10-28 · Phase 5 · Codabench scores
+- S1 **0.3037** (Micro 0.399, subset 0.016) | S2 0.2632 (0.369, 0.012) | S3 0.2730 (0.376, 0.014) | S4 0.2196 (0.314, 0.003)
+- Dev cross-fitted estimates within ±0.01 of test for all four; ensemble (S5) score not reported

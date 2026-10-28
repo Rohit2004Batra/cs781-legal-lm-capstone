@@ -34,11 +34,13 @@ Shared: chunks across the whole document with max/mean pooling, BCE with capped 
 ## Results (dev, 10,181 cases; Macro-F1 with per-statute thresholds, cross-fitted)
 | # | Notebook | Model + technique | Trainable / total params | Train time | Probe (epoch 0) | Ep 1 | Ep 2 | Ep 3 (best) | Global thr. | Micro-F1 | Test setting | Codabench |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| S1 | `P5_S1_A_LORMA.ipynb` | A + LORMA, LP-FT | 1.63M / 126.7M (1.29%) | 162.8 min | 0.2705 | 0.2844 | 0.2951 | **0.2979** | 0.2981 | 0.4014 | evidence_16 | pending (opens 22 Oct) |
-| S2 | `P5_S2_C_LSTM_LayerwiseFT.ipynb` | C + layer-wise FT, LP-FT | 13.63M / 103.9M (13.1%) | 146.6 min | 0.2414 | 0.2519 | 0.2635 | 0.2728 | 0.2705 | 0.3728 | evidence_8 | pending |
-| S3 | `P5_S3_D_TCN_Adapters.ipynb` | D + adapters, LP-FT | 1.73M / 115.9M (1.49%) | 100.3 min | 0.2286 | 0.2341 | 0.2601 | 0.2707 | 0.2660 | 0.3810 | evidence_8 | pending |
-| S4 | `P5_S4_KD_Ensemble_to_BEncoder_LoRA.ipynb` | KD: S1+S2+S3 ensemble → B encoder + LoRA | 0.90M / 82.6M (1.09%) | 73.0 min | 0.1644 | 0.1681 | 0.2059 | 0.2152 | 0.2056 | 0.3101 | evidence_16 | pending |
+| S1 | `P5_S1_A_LORMA.ipynb` | A + LORMA, LP-FT | 1.63M / 126.7M (1.29%) | 162.8 min | 0.2705 | 0.2844 | 0.2951 | **0.2979** | 0.2981 | 0.4014 | evidence_16 | **0.3037** (Micro 0.399, subset 0.016) |
+| S2 | `P5_S2_C_LSTM_LayerwiseFT.ipynb` | C + layer-wise FT, LP-FT | 13.63M / 103.9M (13.1%) | 146.6 min | 0.2414 | 0.2519 | 0.2635 | 0.2728 | 0.2705 | 0.3728 | evidence_8 | 0.2632 (Micro 0.369, subset 0.012) |
+| S3 | `P5_S3_D_TCN_Adapters.ipynb` | D + adapters, LP-FT | 1.73M / 115.9M (1.49%) | 100.3 min | 0.2286 | 0.2341 | 0.2601 | 0.2707 | 0.2660 | 0.3810 | evidence_8 | 0.2730 (Micro 0.376, subset 0.014) |
+| S4 | `P5_S4_KD_Ensemble_to_BEncoder_LoRA.ipynb` | KD: S1+S2+S3 ensemble → B encoder + LoRA | 0.90M / 82.6M (1.09%) | 73.0 min | 0.1644 | 0.1681 | 0.2059 | 0.2152 | 0.2056 | 0.3101 | evidence_16 | 0.2196 (Micro 0.314, subset 0.003) |
 | (teacher) | ensemble of S1+S2+S3 logits | average probability | — / 346.5M | — | — | — | — | **0.3119** | 0.3063 | 0.4098 | — | not submitted yet |
+
+**Codabench vs dev:** S1 0.3037 (dev 0.2981), S2 0.2632 (0.2728), S3 0.2730 (0.2707), S4 0.2196 (0.2152) — the cross-fitted dev estimate was within ±0.01 of the test score for every run, and the ranking A > D ≈ C > B(student) held.
 
 Findings:
 - **Phase-1 representations carry statute information:** a linear probe on frozen features already gives 0.23–0.27; fine-tuning adds +0.027 (A), +0.031 (C), +0.042 (D). All three were still improving at epoch 3.
