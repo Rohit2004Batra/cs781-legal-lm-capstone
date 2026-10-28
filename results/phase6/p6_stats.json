@@ -1,0 +1,399 @@
+{
+  "n_cases": {
+    "train": 7030,
+    "test": 100
+  },
+  "fields": {
+    "train": {
+      "id": "str",
+      "document": "str",
+      "summary": "str"
+    },
+    "test": {
+      "id": "str",
+      "document": "str"
+    }
+  },
+  "quality": {
+    "empty_documents": {
+      "train": 0,
+      "test": 0
+    },
+    "empty_summaries_train": 2,
+    "duplicate_documents_within_train": 27,
+    "test_documents_also_in_train": 0,
+    "duplicate_ids": {
+      "train": 0,
+      "test": 0
+    },
+    "share_lowercase_documents": {
+      "train": 0.0,
+      "test": 0.0
+    }
+  },
+  "words": {
+    "document_train": {
+      "p0": 93,
+      "p5": 1041,
+      "p10": 1348,
+      "p25": 2017,
+      "p50": 3128,
+      "p75": 4971,
+      "p90": 7851,
+      "p95": 11327,
+      "p99": 24245,
+      "p100": 139645,
+      "mean": 4368
+    },
+    "document_test": {
+      "p0": 511,
+      "p5": 1308,
+      "p10": 1503,
+      "p25": 2099,
+      "p50": 3171,
+      "p75": 5408,
+      "p90": 8562,
+      "p95": 13853,
+      "p99": 29199,
+      "p100": 39695,
+      "mean": 4782
+    },
+    "summary_train": {
+      "p0": 0,
+      "p5": 232,
+      "p10": 293,
+      "p25": 421,
+      "p50": 638,
+      "p75": 963,
+      "p90": 1501,
+      "p95": 2010,
+      "p99": 4250,
+      "p100": 27768,
+      "mean": 839
+    }
+  },
+  "chars": {
+    "document_train": {
+      "p0": 592,
+      "p5": 5977,
+      "p10": 7688,
+      "p25": 11527,
+      "p50": 17905,
+      "p75": 28565,
+      "p90": 45051,
+      "p95": 64858,
+      "p99": 140066,
+      "p100": 808118,
+      "mean": 25023
+    },
+    "summary_train": {
+      "p0": 0,
+      "p5": 1327,
+      "p10": 1675,
+      "p25": 2422,
+      "p50": 3664,
+      "p75": 5564,
+      "p90": 8652,
+      "p95": 11602,
+      "p99": 24597,
+      "p100": 158470,
+      "mean": 4840
+    }
+  },
+  "summary_to_document_word_ratio": {
+    "p10": 0.092,
+    "p25": 0.141,
+    "p50": 0.217,
+    "p75": 0.311,
+    "p90": 0.396
+  },
+  "tokens": {
+    "document_train": {
+      "p0": 196,
+      "p5": 1212,
+      "p10": 1565,
+      "p25": 2327,
+      "p50": 3626,
+      "p75": 5715,
+      "p90": 8990,
+      "p95": 13004,
+      "p99": 27885,
+      "p100": 160095,
+      "mean": 5031
+    },
+    "document_test": {
+      "p0": 597,
+      "p5": 1467,
+      "p10": 1759,
+      "p25": 2429,
+      "p50": 3709,
+      "p75": 6308,
+      "p90": 10202,
+      "p95": 16019,
+      "p99": 33314,
+      "p100": 45237,
+      "mean": 5511
+    },
+    "summary_train": {
+      "p0": 0,
+      "p5": 271,
+      "p10": 340,
+      "p25": 490,
+      "p50": 745,
+      "p75": 1131,
+      "p90": 1757,
+      "p95": 2364,
+      "p99": 5031,
+      "p100": 32007,
+      "mean": 984
+    }
+  },
+  "documents_fully_within": {
+    "train": {
+      "512": 0.006,
+      "1024": 0.033,
+      "1536": 0.095,
+      "2048": 0.194,
+      "4096": 0.577
+    },
+    "test": {
+      "512": 0.0,
+      "1024": 0.04,
+      "1536": 0.06,
+      "2048": 0.16,
+      "4096": 0.57
+    }
+  },
+  "summaries_fully_within": {
+    "128": 0.007,
+    "256": 0.042,
+    "384": 0.142,
+    "512": 0.273,
+    "768": 0.521,
+    "1024": 0.701
+  },
+  "summary_content_position_deciles": [
+    0.071,
+    0.116,
+    0.109,
+    0.097,
+    0.086,
+    0.095,
+    0.102,
+    0.102,
+    0.115,
+    0.108
+  ],
+  "abstractiveness": {
+    "novel_unigram_share_mean": 0.043,
+    "novel_bigram_share_mean": 0.219,
+    "best_matching_document_sentence_recall_median": 0.778,
+    "summary_sentences_per_case": {
+      "p10": 9,
+      "p25": 13,
+      "p50": 21,
+      "p75": 31,
+      "p90": 49,
+      "mean": 26
+    }
+  },
+  "extractive_baselines_rouge": {
+    "lead": {
+      "rouge1": 0.487,
+      "rougeL": 0.2708
+    },
+    "tail": {
+      "rouge1": 0.524,
+      "rougeL": 0.2286
+    },
+    "luhn_important": {
+      "rouge1": 0.5208,
+      "rougeL": 0.2859
+    },
+    "oracle_greedy": {
+      "rouge1": 0.7122,
+      "rougeL": 0.3104
+    }
+  },
+  "extractive_baselines_target_words": 638,
+  "summary_openings_top": [
+    [
+      "The appellant was a",
+      65
+    ],
+    [
+      "The appellant was the",
+      41
+    ],
+    [
+      "The appellant was convicted",
+      38
+    ],
+    [
+      "The appellant who was",
+      36
+    ],
+    [
+      "The respondent was a",
+      27
+    ],
+    [
+      "The appellant is a",
+      26
+    ],
+    [
+      "The appellant, who was",
+      25
+    ],
+    [
+      "The appellant filed a",
+      25
+    ],
+    [
+      "The appellant was appointed",
+      22
+    ],
+    [
+      "Section 3 of the",
+      21
+    ],
+    [
+      "The appellant company was",
+      21
+    ],
+    [
+      "The petitioner was detained",
+      20
+    ],
+    [
+      "The appellant was charged",
+      19
+    ],
+    [
+      "The appellant was tried",
+      19
+    ],
+    [
+      "In exercise of the",
+      18
+    ],
+    [
+      "The appellant and the",
+      16
+    ],
+    [
+      "The respondent was appointed",
+      16
+    ],
+    [
+      "The prosecution alleged that",
+      15
+    ],
+    [
+      "The respondent who was",
+      15
+    ],
+    [
+      "The respondent was the",
+      14
+    ]
+  ],
+  "summary_first_word_top": [
+    [
+      "The",
+      3845
+    ],
+    [
+      "In",
+      410
+    ],
+    [
+      "Section",
+      278
+    ],
+    [
+      "A",
+      262
+    ],
+    [
+      "On",
+      193
+    ],
+    [
+      "%",
+      180
+    ],
+    [
+      "Under",
+      175
+    ],
+    [
+      "By",
+      112
+    ],
+    [
+      "One",
+      79
+    ],
+    [
+      "An",
+      69
+    ],
+    [
+      "Respondent",
+      65
+    ],
+    [
+      "Rule",
+      55
+    ],
+    [
+      "This",
+      48
+    ],
+    [
+      "For",
+      43
+    ],
+    [
+      "Sub",
+      42
+    ]
+  ],
+  "phase1_model_limits": {
+    "A": {
+      "context_length": 2048,
+      "d_model": 768,
+      "n_layers": 12
+    },
+    "B": {
+      "src_context_length": 1024,
+      "tgt_context_length": 1024,
+      "d_model": 768,
+      "n_encoder_layers": 6,
+      "n_decoder_layers": 6
+    },
+    "C": {
+      "context_length": 1024,
+      "hidden_size": 1280,
+      "num_layers": 3
+    },
+    "D": {
+      "context_length": 2048,
+      "channels": 1024,
+      "dilations": [
+        1,
+        2,
+        4,
+        8,
+        16,
+        32,
+        64,
+        128,
+        256,
+        512
+      ],
+      "receptive_field": 4093
+    }
+  }
+}

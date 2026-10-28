@@ -9,6 +9,20 @@ Output: JSON list `[{"id": ..., "summary": "..."}]` (object format also accepted
 - Changing only generation parameters (beam size, length, …) is **not** a new experiment.
 - Every experiment starts from the Phase-1 weights; no other pretrained model, weights or LLM/API.
 
+## Data analysis (`results/phase6/p6_stats.json`)
+| | Cases | Words (p25 / median / p75 / p90) | BPE tokens (p25 / median / p75 / p90 / p99) |
+|---|---|---|---|
+| train documents | 7,030 | 2,017 / 3,128 / 4,971 / 7,851 | 2,327 / 3,626 / 5,715 / 8,990 / 27,885 |
+| test documents | 100 | 2,099 / 3,171 / 5,408 / 8,562 | 2,429 / 3,709 / 6,308 / 10,202 / 33,314 |
+| train summaries | 7,030 | 421 / 638 / 963 / 1,501 | 490 / 745 / 1,131 / 1,757 / 5,031 |
+
+1. **Long summaries:** median 745 tokens (21 sentences), ≈ 22% of the document (p10–p90: 9–40%) — these are Supreme Court headnotes ("The appellant was …", "Allowing the appeal, HELD: …").
+2. **Content comes from the whole document, evenly** (share of summary sentences whose best source lies in each tenth: 7–12%), not from the start or end → reading only the first chunk loses most content; whole-document coverage is needed.
+3. **Close paraphrase:** only 4% novel words and 22% novel bigrams; the best-matching document sentence covers a median 78% of each summary sentence's words.
+4. **Extractive floor (ROUGE-1 / ROUGE-L, 638 words):** lead 0.487 / 0.271, tail 0.524 / 0.229, Luhn-important 0.521 / 0.286; greedy sentence oracle 0.712 / 0.310.
+5. **Context limits:** A 2,048 tokens; B 1,024 source + 1,024 target; C 1,024 (training length); D 2,048 (receptive field 4,093). Only 19% of documents fit in 2,048 tokens and 58% in 4,096.
+6. Clean data: no train–test overlap, 27 duplicate documents and 2 empty summaries in train.
+
 ## Plan (to be confirmed by the data analysis)
 | # | Model | Technique | Generation |
 |---|---|---|---|
