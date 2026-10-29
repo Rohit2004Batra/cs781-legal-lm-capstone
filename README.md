@@ -47,7 +47,7 @@ Tokenizer: byte-level BPE, vocab 50,000, special tokens `[PAD]`=0 `[UNK]`=1 `[BO
 | 3 | Rhetorical Role | Macro-F1 | 0.5184 | S6 | KD: S7 teacher → 6-layer A student (LoRA + BiLSTM-CRF) |
 | 4 | Judgment Prediction | Macro-F1 | 0.6795 | S1 | A (Decoder) + LORMA, LP-FT (linear-probe init → 4 epochs fine-tuning) |
 | 5 | Statute Identification | Macro-F1 | 0.3037 | S1 | A (Decoder) + LORMA, LP-FT, multi-label (per-statute thresholds) |
-| 6 | Summarization | BERTScore F1 | 0.8287 | S1 | A (Decoder) + LORMA, chunk-level summaries joined |
+| 6 | Summarization | BERTScore F1 | 0.8354 | S1-tuned | A (Decoder) + LORMA, chunk-level summaries; decoding: min length 22% + repetition penalty 1.2 |
 | 7 | Prior Case Retrieval | Micro-F1@7 | | | |
 
 Per-phase detail: see `code/phaseN/README.md`.

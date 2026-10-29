@@ -29,3 +29,4 @@ date,phase,sub_id,notebook,base_model,technique,trainable_params,total_params,lo
 2026-10-29,6,,P6_S2_B_EncDec_LoRA.ipynb,B Encoder-Decoder,LoRA r=8 all enc/dec projections; seq2seq chunk summaries joined,,,,0.8033,ROUGE-1 0.3314; ROUGE-L 0.2043,yes,
 2026-10-29,6,,P6_S3_D_TCN_HoulsbyAdapters.ipynb,D Dilated Residual TCN,Houlsby adapters; prefix-LM chunk summaries joined,,,,0.8060,ROUGE-1 0.3509; ROUGE-L 0.2091,yes,
 2026-10-29,6,,P6_S4_KD_A_to_C_LSTM.ipynb,C Stacked LSTM (student),Word-level KD from S1 (A + LORMA) T=2,,,,0.8086,ROUGE-1 0.3582; ROUGE-L 0.2163,yes,"KD student beats S2/S3"
+2026-10-29,6,,P6_S1_tune_generation.ipynb,A Decoder-only,S1 weights; decoding min length 22% + repetition penalty 1.2,,,0.5212/0.2495 (val ROUGE-1/L),0.8354,ROUGE-1 0.5267; ROUGE-L 0.2403,yes,"best Phase 6; no retraining"

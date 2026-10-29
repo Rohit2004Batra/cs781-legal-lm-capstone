@@ -40,7 +40,7 @@ Shared: held-out validation split from train (selection by ROUGE-1/ROUGE-L and s
 | S2 | `P6_S2_B_EncDec_LoRA.ipynb` | B + LoRA | 0.8033 | 0.3314 / 0.2043 | 0.3265 / 0.2117 |
 | S3 | `P6_S3_D_TCN_HoulsbyAdapters.ipynb` | D + Houlsby adapters | 0.8060 | 0.3509 / 0.2091 | — |
 | S4 | `P6_S4_KD_A_to_C_LSTM.ipynb` | KD: S1 → C | 0.8086 | 0.3582 / 0.2163 | — |
-| S1-tuned | `P6_S1_tune_generation.ipynb` | S1 weights, min length 22% + repetition penalty 1.2 | pending | | 0.5212 / 0.2495 |
+| S1-tuned | `P6_S1_tune_generation.ipynb` | S1 weights, min length 22% + repetition penalty 1.2 | **0.8354** | **0.5267** / 0.2403 | 0.5212 / 0.2495 |
 
 **S1 details:** 28,255 train pairs (89% of summary sentences aligned with word recall ≥ 0.5; 12.6% of chunks have no summary sentence); validation loss 3.449 (Phase-1 A, perplexity 31.5) → 2.413 → **2.349** (perplexity 10.5) after 2 epochs (65 min, still falling); validation ROUGE-1 / L by keep-fraction 0.5: 0.398 / 0.229 (length ×0.46) · 0.7: 0.449 / 0.244 · 0.85: 0.460 / 0.245 · **1.0: 0.461 / 0.245 (×0.88)**; **first chunk only: 0.303 / 0.197 (×0.30)** → chunk-and-join adds +0.16 ROUGE-1; 20% repeated trigrams; test generation 10 min for 100 documents (median 581 words vs 640 in references).
 

@@ -177,3 +177,4 @@ This is the raw material for the report and the viva — record it the day you r
 - S3 (D + Houlsby adapters): BERTScore 0.8060, ROUGE-1 0.3509, ROUGE-L 0.2091
 - S4 (KD S1 → C): BERTScore 0.8086, ROUGE-1 0.3582, ROUGE-L 0.2163
 - S1 tuning grid (60 val docs): best min length 0.22 + repetition penalty 1.2 → 0.532/0.257; all 150 val docs 0.521/0.250 (S1 0.461/0.245), length ×1.12, repeated trigrams 11.1%; test median 765 words; Codabench pending
+- S1-tuned Codabench: BERTScore **0.8354** (S1 0.8287), ROUGE-1 0.5267 (0.4733), ROUGE-L 0.2403 (0.2349) — decoding only
