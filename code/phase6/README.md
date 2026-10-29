@@ -33,6 +33,14 @@ Output: JSON list `[{"id": ..., "summary": "..."}]` (object format also accepted
 
 Shared: held-out validation split from train (selection by ROUGE-1/ROUGE-L and summary length); importance-based context selection for long documents; decoding with repetition blocking and a length target tuned on validation.
 
+## Results
+| # | Notebook | Model + technique | Codabench BERTScore F1 | ROUGE-1 / ROUGE-L (Codabench) | Validation ROUGE-1 / L |
+|---|---|---|---|---|---|
+| S1 | `P6_S1_A_LORMA.ipynb` | A + LORMA | **0.8287** | — | — |
+| S2 | `P6_S2_B_EncDec_LoRA.ipynb` | B + LoRA | pending | | |
+| S3 | `P6_S3_D_TCN_HoulsbyAdapters.ipynb` | D + Houlsby adapters | pending | | |
+| S4 | `P6_S4_KD_A_to_C_LSTM.ipynb` | KD: S1 → C | pending | | |
+
 ## Notebooks
 - `P6_S4_KD_A_to_C_LSTM.ipynb` — word-level knowledge distillation: teacher = Phase-1 A + S1's LORMA weights (`Phase6_S1_Dataset`), student = Phase-1 C (top LSTM layer + final norm + output bias trained); loss = CE + 1.0·T²·KL(teacher‖student) over the full vocabulary at every summary token, T = 2; chunks ≤640 + summaries ≤360 tokens (within C's 1,024 pretraining length); packed-prefill + carried-state LSTM decoding. Local checks: teacher loaded from a dataset-shaped S1 output; student validation loss 26.9 → 22.3 in one epoch; cached generation identical to full recomputation.
 - `P6_S3_D_TCN_HoulsbyAdapters.ipynb` — D + Houlsby adapters (two 64-d adapters per TCN block: after conv 1 and after the residual output, identity at start) as a prefix LM (same prompt format and chunks as S1); exact incremental TCN decoding with per-convolution input histories and zeroed left padding. Local checks: incremental generation identical to full recomputation; adapters-only validation loss 40.6 → 26.0; full-parameter overfit 43.6 → 4.8.
