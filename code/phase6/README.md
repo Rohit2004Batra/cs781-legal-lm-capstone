@@ -40,6 +40,9 @@ Shared: held-out validation split from train (selection by ROUGE-1/ROUGE-L and s
 | S2 | `P6_S2_B_EncDec_LoRA.ipynb` | B + LoRA | 0.8033 | 0.3314 / 0.2043 | 0.3265 / 0.2117 |
 | S3 | `P6_S3_D_TCN_HoulsbyAdapters.ipynb` | D + Houlsby adapters | 0.8060 | 0.3509 / 0.2091 | — |
 | S4 | `P6_S4_KD_A_to_C_LSTM.ipynb` | KD: S1 → C | 0.8086 | 0.3582 / 0.2163 | — |
+| S2-tuned | `P6_S2_tune_generation.ipynb` | S2 weights, tuned decoding | 0.8093 | 0.3726 / 0.2000 | — |
+| S3-tuned | `P6_S3_tune_generation.ipynb` | S3 weights, tuned decoding | 0.8142 | 0.3928 / 0.2018 | — |
+| S4-tuned | `P6_S4_tune_generation.ipynb` | S4 weights, tuned decoding | 0.8161 | 0.4345 / 0.1978 | — |
 | S1-tuned | `P6_S1_tune_generation.ipynb` | S1 weights, min length 22% + repetition penalty 1.2 | **0.8354** | **0.5267** / 0.2403 | 0.5212 / 0.2495 |
 
 **S1 details:** 28,255 train pairs (89% of summary sentences aligned with word recall ≥ 0.5; 12.6% of chunks have no summary sentence); validation loss 3.449 (Phase-1 A, perplexity 31.5) → 2.413 → **2.349** (perplexity 10.5) after 2 epochs (65 min, still falling); validation ROUGE-1 / L by keep-fraction 0.5: 0.398 / 0.229 (length ×0.46) · 0.7: 0.449 / 0.244 · 0.85: 0.460 / 0.245 · **1.0: 0.461 / 0.245 (×0.88)**; **first chunk only: 0.303 / 0.197 (×0.30)** → chunk-and-join adds +0.16 ROUGE-1; 20% repeated trigrams; test generation 10 min for 100 documents (median 581 words vs 640 in references).
@@ -55,6 +58,8 @@ Shared: held-out validation split from train (selection by ROUGE-1/ROUGE-L and s
 | 0.22 | 0.473 / 0.250 / ×1.24 / 22.8% | **0.532 / 0.257 / ×0.95 / 11.2%** |
 
 Longer summaries alone do not help (they add repetition); the repetition penalty alone shortens them; together they work (+0.06 ROUGE-1). All 150 validation documents with 0.22 / 1.2: **0.521 / 0.250** (S1: 0.461 / 0.245), length ×1.12, repeated trigrams 11.1% (S1: 20.2%); test median 765 words. The best setting is at the edge of the grid.
+
+**Decoding tuning across all four (Codabench BERTScore F1, original → tuned):** S1 0.8287 → **0.8354** (+0.0067) · S2 0.8033 → 0.8093 (+0.0060) · S3 0.8060 → 0.8142 (+0.0082) · S4 0.8086 → 0.8161 (+0.0075). ROUGE-1 rises for every model (+0.04 to +0.08); ROUGE-L stays flat or drops slightly for S2–S4 (longer outputs), so BERTScore and ROUGE-1 track each other, ROUGE-L does not. The ranking is unchanged: A + LORMA > KD student (C) > D + adapters > B + LoRA.
 
 ## Notebooks
 - `P6_S2_tune_generation.ipynb`, `P6_S3_tune_generation.ipynb`, `P6_S4_tune_generation.ipynb` — no training: each run's checkpoint + prepared data from `Phase6_S{2,3,4}_Dataset`, the run's own model and cached-generation code + a repetition penalty; grid on 60 validation documents: original (0.08 / 1.0) and minimum length 15/22/30% × penalty 1.2/1.35; best re-scored on all 150 validation documents; new test summaries.
