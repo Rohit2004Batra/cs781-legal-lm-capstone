@@ -168,3 +168,6 @@ This is the raw material for the report and the viva — record it the day you r
 - BERTScore F1 **0.8287** (A + LORMA, chunk-level summaries joined); validation details pending
 - ROUGE-1 0.4733, ROUGE-L 0.2349 (extractive references on train sample: lead 0.487/0.271, Luhn 0.521/0.286)
 - S1 validation: loss 3.449 → 2.349 (2 epochs, still falling); ROUGE-1/L 0.461/0.245 at keep 1.0 (length ×0.88, 20% repeated trigrams); first chunk only 0.303/0.197
+
+### 2026-10-29 · Phase 6 · S2 Codabench
+- BERTScore F1 0.8033, ROUGE-1 0.3314, ROUGE-L 0.2043 (well below S1 0.8287 / 0.4733 / 0.2349); diagnosis pending notebook outputs
