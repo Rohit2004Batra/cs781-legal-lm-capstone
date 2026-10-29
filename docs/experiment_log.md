@@ -171,3 +171,4 @@ This is the raw material for the report and the viva — record it the day you r
 
 ### 2026-10-29 · Phase 6 · S2 Codabench
 - BERTScore F1 0.8033, ROUGE-1 0.3314, ROUGE-L 0.2043 (well below S1 0.8287 / 0.4733 / 0.2349); diagnosis pending notebook outputs
+- S2 validation: loss 4.286 → 3.918 (perplexity 72.7 → 50.3; S1 31.5 → 10.5); ROUGE-1/L 0.327/0.212, length ×0.59, 39% repeated trigrams; first chunk 0.218/0.163
