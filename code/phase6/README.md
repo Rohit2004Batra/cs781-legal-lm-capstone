@@ -36,7 +36,7 @@ Shared: held-out validation split from train (selection by ROUGE-1/ROUGE-L and s
 ## Results
 | # | Notebook | Model + technique | Codabench BERTScore F1 | ROUGE-1 / ROUGE-L (Codabench) | Validation ROUGE-1 / L |
 |---|---|---|---|---|---|
-| S1 | `P6_S1_A_LORMA.ipynb` | A + LORMA | **0.8287** | — | — |
+| S1 | `P6_S1_A_LORMA.ipynb` | A + LORMA | **0.8287** | 0.4733 / 0.2349 | — |
 | S2 | `P6_S2_B_EncDec_LoRA.ipynb` | B + LoRA | pending | | |
 | S3 | `P6_S3_D_TCN_HoulsbyAdapters.ipynb` | D + Houlsby adapters | pending | | |
 | S4 | `P6_S4_KD_A_to_C_LSTM.ipynb` | KD: S1 → C | pending | | |

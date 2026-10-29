@@ -166,3 +166,4 @@ This is the raw material for the report and the viva — record it the day you r
 
 ### 2026-10-29 · Phase 6 · S1 Codabench
 - BERTScore F1 **0.8287** (A + LORMA, chunk-level summaries joined); validation details pending
+- ROUGE-1 0.4733, ROUGE-L 0.2349 (extractive references on train sample: lead 0.487/0.271, Luhn 0.521/0.286)
