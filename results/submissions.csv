@@ -27,3 +27,5 @@ date,phase,sub_id,notebook,base_model,technique,trainable_params,total_params,lo
 2026-10-22,5,,P5_S4_KD_Ensemble_to_BEncoder_LoRA.ipynb,B encoder (student),KD from S1+S2+S3 ensemble + LoRA,897124,82612324,0.2152 (dev cross-fitted),0.2196,Micro-F1 0.314; subset 0.003,yes,"KD; student keeps 69% of teacher"
 2026-10-29,6,,P6_S1_A_LORMA.ipynb,A Decoder-only,LORMA r=8; chunk-level prefix-LM summaries joined,,,,0.8287,ROUGE-1 0.4733; ROUGE-L 0.2349,yes,
 2026-10-29,6,,P6_S2_B_EncDec_LoRA.ipynb,B Encoder-Decoder,LoRA r=8 all enc/dec projections; seq2seq chunk summaries joined,,,,0.8033,ROUGE-1 0.3314; ROUGE-L 0.2043,yes,
+2026-10-29,6,,P6_S3_D_TCN_HoulsbyAdapters.ipynb,D Dilated Residual TCN,Houlsby adapters; prefix-LM chunk summaries joined,,,,0.8060,ROUGE-1 0.3509; ROUGE-L 0.2091,yes,
+2026-10-29,6,,P6_S4_KD_A_to_C_LSTM.ipynb,C Stacked LSTM (student),Word-level KD from S1 (A + LORMA) T=2,,,,0.8086,ROUGE-1 0.3582; ROUGE-L 0.2163,yes,"KD student beats S2/S3"

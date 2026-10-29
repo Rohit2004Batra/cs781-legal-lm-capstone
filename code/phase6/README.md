@@ -38,12 +38,23 @@ Shared: held-out validation split from train (selection by ROUGE-1/ROUGE-L and s
 |---|---|---|---|---|---|
 | S1 | `P6_S1_A_LORMA.ipynb` | A + LORMA | **0.8287** | 0.4733 / 0.2349 | 0.4612 / 0.2452 |
 | S2 | `P6_S2_B_EncDec_LoRA.ipynb` | B + LoRA | 0.8033 | 0.3314 / 0.2043 | 0.3265 / 0.2117 |
-| S3 | `P6_S3_D_TCN_HoulsbyAdapters.ipynb` | D + Houlsby adapters | pending | | |
-| S4 | `P6_S4_KD_A_to_C_LSTM.ipynb` | KD: S1 → C | pending | | |
+| S3 | `P6_S3_D_TCN_HoulsbyAdapters.ipynb` | D + Houlsby adapters | 0.8060 | 0.3509 / 0.2091 | — |
+| S4 | `P6_S4_KD_A_to_C_LSTM.ipynb` | KD: S1 → C | 0.8086 | 0.3582 / 0.2163 | — |
+| S1-tuned | `P6_S1_tune_generation.ipynb` | S1 weights, min length 22% + repetition penalty 1.2 | pending | | 0.5212 / 0.2495 |
 
 **S1 details:** 28,255 train pairs (89% of summary sentences aligned with word recall ≥ 0.5; 12.6% of chunks have no summary sentence); validation loss 3.449 (Phase-1 A, perplexity 31.5) → 2.413 → **2.349** (perplexity 10.5) after 2 epochs (65 min, still falling); validation ROUGE-1 / L by keep-fraction 0.5: 0.398 / 0.229 (length ×0.46) · 0.7: 0.449 / 0.244 · 0.85: 0.460 / 0.245 · **1.0: 0.461 / 0.245 (×0.88)**; **first chunk only: 0.303 / 0.197 (×0.30)** → chunk-and-join adds +0.16 ROUGE-1; 20% repeated trigrams; test generation 10 min for 100 documents (median 581 words vs 640 in references).
 
 **S2 details:** 32,269 train pairs (≤1,000-token chunks); validation loss 4.286 (Phase-1 B, perplexity 72.7) → 3.944 → **3.918** (perplexity 50.3) — a much smaller gain than S1 (31.5 → 10.5) with LoRA at LR 3e-4 for 2 epochs (41.6 min); validation ROUGE-1 / L at keep 1.0: 0.327 / 0.212 with summaries only ×0.59 the reference length and **39% repeated trigrams**; first chunk only 0.218 / 0.163; test median 426 words. Diagnosis: B both learns less (weaker Phase-1 starting point and adaptation) and decodes worse (short, repetitive) than A.
+
+**S1 decoding tuning (no training, 60 validation documents, ROUGE-1 / L / length / repeated trigrams):**
+
+| min length \ penalty | 1.0 | 1.2 |
+|---|---|---|
+| 0.08 (S1) | 0.467 / 0.250 / ×0.77 / 20.4% | 0.443 / 0.236 / ×0.45 / 8.1% |
+| 0.15 | 0.477 / 0.251 / ×1.03 / 21.7% | 0.511 / 0.255 / ×0.71 / 9.9% |
+| 0.22 | 0.473 / 0.250 / ×1.24 / 22.8% | **0.532 / 0.257 / ×0.95 / 11.2%** |
+
+Longer summaries alone do not help (they add repetition); the repetition penalty alone shortens them; together they work (+0.06 ROUGE-1). All 150 validation documents with 0.22 / 1.2: **0.521 / 0.250** (S1: 0.461 / 0.245), length ×1.12, repeated trigrams 11.1% (S1: 20.2%); test median 765 words. The best setting is at the edge of the grid.
 
 ## Notebooks
 - `P6_S1_tune_generation.ipynb` — no training: S1's checkpoint + prepared data from `Phase6_S1_Dataset`; decoding grid on 60 validation documents (minimum length per chunk 8/15/22% × repetition penalty 1.0/1.2, maximum 50%), best re-scored on all 150 validation documents, then test summaries → improved S1 submission.

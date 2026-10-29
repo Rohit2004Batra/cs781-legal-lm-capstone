@@ -172,3 +172,8 @@ This is the raw material for the report and the viva — record it the day you r
 ### 2026-10-29 · Phase 6 · S2 Codabench
 - BERTScore F1 0.8033, ROUGE-1 0.3314, ROUGE-L 0.2043 (well below S1 0.8287 / 0.4733 / 0.2349); diagnosis pending notebook outputs
 - S2 validation: loss 4.286 → 3.918 (perplexity 72.7 → 50.3; S1 31.5 → 10.5); ROUGE-1/L 0.327/0.212, length ×0.59, 39% repeated trigrams; first chunk 0.218/0.163
+
+### 2026-10-29 · Phase 6 · S3, S4 Codabench; S1 decoding tuning
+- S3 (D + Houlsby adapters): BERTScore 0.8060, ROUGE-1 0.3509, ROUGE-L 0.2091
+- S4 (KD S1 → C): BERTScore 0.8086, ROUGE-1 0.3582, ROUGE-L 0.2163
+- S1 tuning grid (60 val docs): best min length 0.22 + repetition penalty 1.2 → 0.532/0.257; all 150 val docs 0.521/0.250 (S1 0.461/0.245), length ×1.12, repeated trigrams 11.1%; test median 765 words; Codabench pending
