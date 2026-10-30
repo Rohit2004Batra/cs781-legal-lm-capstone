@@ -3,7 +3,7 @@
 **Window:** 12–16 Oct 2026 · **Metric:** Macro-F1 (secondary: Macro-P, Macro-R) · **Data:** `Phase_3_RR/` · **Min submissions:** 4
 
 ## Task & output format
-Label every sentence of an Indian judgment with one of 13 rhetorical roles: Fact, Issue, ArgumentPetitioner, ArgumentRespondent, Statute, Dissent, PrecedentReliedUpon, PrecedentNotReliedUpon, PrecedentOverruled, RulingByLowerCourt, RatioOfTheDecision, RulingByPresentCourt, None. The judgments come from two domains, CL (competition law) and IT (income tax). The test set has 10 documents (5 per domain), and the submission gives one label per sentence, in order:
+Label every sentence of an Indian judgment with one of 13 rhetorical roles: Fact, Issue, ArgumentPetitioner, ArgumentRespondent, Statute, Dissent, PrecedentReliedUpon, PrecedentNotReliedUpon, PrecedentOverruled, RulingByLowerCourt, RatioOfTheDecision, RulingByPresentCourt, None. The judgments come from two domains, CL (Corporate Law) and IT (Information Technology), as named in the task description. The test set has 10 documents (5 per domain), and the submission gives one label per sentence, in order:
 
 ```json
 {"<doc_id>": ["Fact", "Fact", "ArgumentPetitioner", ..., "RulingByPresentCourt"], ...}
