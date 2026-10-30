@@ -23,7 +23,7 @@ Output: JSON list `[{"id": ..., "summary": "..."}]` (object format also accepted
 5. **Context limits:** A 2,048 tokens; B 1,024 source + 1,024 target; C 1,024 (training length); D 2,048 (receptive field 4,093). Only 19% of documents fit in 2,048 tokens and 58% in 4,096.
 6. Clean data: no train–test overlap, 27 duplicate documents and 2 empty summaries in train.
 
-## Plan (to be confirmed by the data analysis)
+## Plan
 | # | Model | Technique | Generation |
 |---|---|---|---|
 | S1 | A decoder (ctx 2048) | LORMA | prefix-LM: selected document context + separator → summary; KD teacher |
@@ -60,6 +60,55 @@ Shared: held-out validation split from train (selection by ROUGE-1/ROUGE-L and s
 Longer summaries alone do not help (they add repetition); the repetition penalty alone shortens them; together they work (+0.06 ROUGE-1). All 150 validation documents with 0.22 / 1.2: **0.521 / 0.250** (S1: 0.461 / 0.245), length ×1.12, repeated trigrams 11.1% (S1: 20.2%); test median 765 words. The best setting is at the edge of the grid.
 
 **Decoding tuning across all four (Codabench BERTScore F1, original → tuned):** S1 0.8287 → **0.8354** (+0.0067) · S2 0.8033 → 0.8093 (+0.0060) · S3 0.8060 → 0.8142 (+0.0082) · S4 0.8086 → 0.8161 (+0.0075). ROUGE-1 rises for every model (+0.04 to +0.08); ROUGE-L stays flat or drops slightly for S2–S4 (longer outputs), so BERTScore and ROUGE-1 track each other, ROUGE-L does not. The ranking is unchanged: A + LORMA > KD student (C) > D + adapters > B + LoRA.
+
+## Final submissions
+The four **tuned** runs count as Phase 6's four submissions: S1-tuned 0.8354, S4-tuned 0.8161, S3-tuned 0.8142 and S2-tuned 0.8093. Each uses a different Phase-1 model, and between them they use LORMA, LoRA, Houlsby adapters and KD. The original runs (S1–S4) are kept as the decoding ablation. They used the same weights, so they are not separate experiments.
+
+## Analysis (Expected Analysis)
+- **Techniques compared:** LORMA on A (S1), LoRA on B (S2), Houlsby adapters on D (S3), and word-level KD from S1 into C (S4).
+  - Ranking (tuned): A + LORMA **0.8354** > KD student C 0.8161 > D + adapters 0.8142 > B + LoRA 0.8093. The originals rank the same way.
+  - A wins by 0.019 BERTScore and 0.09 ROUGE-1. It adapted most during training: validation perplexity 31.5 → 10.5 for A, against 72.7 → 50.3 for B with LoRA.
+  - **BERTScore is compressed.** All eight Codabench scores lie between 0.803 and 0.835, while ROUGE-1 ranges from 0.33 to 0.53. ROUGE-1 separates the systems far more clearly.
+- **Long-document strategy:** only 19% of documents fit in A's 2,048-token context, and summary content comes evenly from the whole document (7–12% from each tenth). Every model therefore summarises **chunks**, and the chunk summaries are joined.
+  - **Training pairs:** each summary sentence is assigned to the chunk containing its best-matching document sentence (89% of sentences align with word recall ≥ 0.5). Each chunk is trained to produce its own part of the headnote.
+  - **Coverage effect:** summarising only the first chunk gives ROUGE-1 0.303 (S1) and 0.218 (S2). All chunks joined gives 0.461 and 0.327: **+0.16 and +0.11**, the largest single effect in the phase.
+- **Factual preservation:** we had no factuality metric, so we use two proxies.
+  - **Closeness to the source:** references are close paraphrases (only 4% novel words), so a model that copies source content faithfully scores well on ROUGE-1. S1-tuned (validation ROUGE-1 0.521) matches the best extractive baseline (Luhn 0.521) and beats lead (0.487), while staying below the extractive oracle (0.712).
+  - **Training signal:** the prefix-LM is trained only on summary sentences aligned to the chunk it reads. The model is never asked to state something that is not in its input chunk.
+  - **Known risk:** chunk summaries are written independently. Parties or dates introduced in one chunk can be restated, or slightly altered, in another; this is not measured here.
+- **Redundancy:** repeated trigrams were the main decoding problem.
+  - S1 originally had 20% repeated trigrams and S2 39%, despite 4-gram blocking inside each chunk.
+  - A repetition penalty of 1.2 on tokens already generated for the chunk halves this for S1 (20.2% → 11.1%).
+  - Duplicate sentences across chunk summaries are removed when joining.
+- **Length vs metric:**
+  - Lengthening alone (minimum 22% of the chunk, no penalty) makes summaries ×1.24 the reference length and adds repetition, leaving ROUGE-1 flat at 0.473.
+  - The penalty alone shortens them to ×0.45 and *lowers* ROUGE-1.
+  - **Both together:** ×0.95 length, ROUGE-1 0.532 on 60 documents and 0.521 on all 150, against 0.461.
+  - **On Codabench:** ROUGE-1 rose for every model (+0.04 to +0.08) and BERTScore by +0.006 to +0.008. ROUGE-L stayed flat or fell slightly for S2–S4, whose longer outputs carry more words outside the longest common subsequence.
+  - BERTScore and ROUGE-1 reward length matched to the reference with low repetition. ROUGE-L is not sensitive to it.
+- **Did KD preserve performance?** It partly did.
+  - The C student (103.4M parameters; top LSTM layer, final norm and output bias trained) reached 0.8161 tuned. That is below its teacher A + LORMA (0.8354), but **above the directly adapted B and D models** (0.8093 / 0.8142).
+  - On ROUGE-1 it keeps 82% of the teacher's score (0.435 vs 0.527).
+  - Training on the teacher's full next-word distribution (T = 2) transferred more summarisation skill than adapting B or D on the references alone.
+  - The size gain is small (103M vs 126M parameters), but an LSTM generates with constant memory per token, without a growing attention cache.
+- **Cost:**
+  - S1: 65 min training (2 epochs, still improving) plus ~10 min to generate 100 test summaries.
+  - S2: 41.6 min training.
+  - Decoding tuning: ~45–90 min per model with no training, for +0.006–0.008 BERTScore and +0.04–0.08 ROUGE-1. Per GPU-minute this was the cheapest improvement of the phase.
+  - All generation is cached: KV cache for A and B, exact incremental convolution for D, carried LSTM state for C. Each was checked to be identical to full recomputation.
+- **Did Phase-1 representations transfer?** Yes, the strongest transfer of any phase.
+  - A's Phase-1 perplexity on the headnote task (31.5) falls to 10.5 after two epochs with only LORMA trained.
+  - The backbone ranking from Phases 3–5 (A first, B last) holds again.
+  - B is the natural architecture for summarisation, yet it is weakest. Its Phase-1 decoder learned less, and LoRA could not close the gap in two epochs.
+
+## What failed
+- **The original decoding** (minimum length 8% of the chunk, no repetition penalty) gave summaries that were too short for B (×0.59) and repetitive for every model. All four originals were superseded by the tuned runs.
+- **S2 (B + LoRA):** validation perplexity only fell to 50.3, with 39% repeated trigrams. B both learns and decodes worse than A here.
+- **Under-training:** S1 was still improving after two epochs (validation loss 2.413 → 2.349). The Kaggle time budget, with generation included, limited every run to about two epochs.
+- **The tuning grid edge:** S1's best decoding setting (minimum length 22%, penalty 1.2) lies on the edge of the grid. A wider grid might gain a little more, but that is a generation-only change.
+
+## Kaggle links
+Base checkpoints are the Phase-1 datasets (`code/phase1/README.md`). S4 and the tuning notebooks read run outputs from `Phase6_S{1,2,3,4}_Dataset`. Notebook links will be added after Phase 7.
 
 ## Notebooks
 - `P6_S2_tune_generation.ipynb`, `P6_S3_tune_generation.ipynb`, `P6_S4_tune_generation.ipynb` — no training: each run's checkpoint + prepared data from `Phase6_S{2,3,4}_Dataset`, the run's own model and cached-generation code + a repetition penalty; grid on 60 validation documents: original (0.08 / 1.0) and minimum length 15/22/30% × penalty 1.2/1.35; best re-scored on all 150 validation documents; new test summaries.

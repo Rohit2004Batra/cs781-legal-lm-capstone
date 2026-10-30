@@ -24,8 +24,6 @@ Run `P4_data_analysis.ipynb` on Kaggle (CPU); full statistics in `results/phase4
 5. **Very long, heavy-tailed documents:** median 2.6k–3.8k tokens, p99 ≈ 24k, one train case 488k tokens. Full documents per epoch (~156M tokens) are unaffordable on a T4.
 6. **The final decision text has been removed, but the outcome signal is concentrated at the end:** in the last 1,000 characters "set aside" occurs in 25% of label-1 vs 6.6% of label-0 train cases ("allowed" 18.9% vs 6.5%, "dismissed" 6.9% vs 17.4%); in the first 1,000 characters these rates are almost identical across labels. → the main input is the **last chunks** of each case; first-vs-last-vs-more chunks is the section analysis.
 7. Section cues are common (facts 83%, held 75%, order 88% of a train sample), but there are no reliable headings, so selection is positional (last N chunks) rather than heading-based.
-- Sizes (train/dev/test), label distribution, document/sentence length stats
-- Observations that shaped the design (imbalance, long docs, domain differences)
 
 ## Submissions
 
@@ -57,13 +55,55 @@ Teacher = P4_S2 rebuilt from its `best.pt` (3-layer C, top layer + final LayerNo
 **S1 v5 (LP-FT) result:** learned from the first quick check (spread 0.16 at step 500) and kept improving — dev-clean 0.6542 after epoch 1, **0.6710** after epoch 2 (P 0.678, R 0.673; threshold 0.41); section analysis first 2: 0.597, last 2: 0.671, last 4: 0.670, last 8: 0.669. **Linear probe alone (epoch 0, frozen Phase-1 A, all 31.6k train cases):** dev-clean 0.6063 (C = 0.01; C = 0.1: 0.6060, C = 1.0: 0.6016; features 8.0 min, probe ≤ 35 s) — the copied model reproduced it exactly. LORMA fine-tuning then added **+0.088** (0.6063 → 0.6947). **4-epoch rerun (final submission):** dev-clean 0.6601 → 0.6750 → **0.6947** → 0.6901 (epoch 3 kept; P 0.696, R 0.695); Codabench **0.6795** (P 0.662, R 0.744). Sections: first 2 0.593, last 2 0.695 (used), last 4 0.689, last 8 0.688. Fine-tuning from a probe-initialised head is what made LORMA work on A; the same LORMA from a random head collapsed in four runs.
 
 ## Analysis
-Answer each "Expected Analysis" bullet from the capstone doc for this phase:
-- Which technique/model worked best, and why
-- PEFT vs full adaptation
-- Effect of context / long-document strategy
-- Hard classes and error examples
-- Did KD preserve performance? Size/memory/latency trade-off
-- Did Phase-1 representations transfer?
+Codabench P and R refer to **label 1**. This is inferred from the collapsed S1 v3 run: it predicted 1 for 1,497 of ~1,500 test cases and got R 0.988.
+
+- **Which technique worked best, and why:** A + LORMA with **LP-FT** (S1): Codabench 0.6795, dev-clean 0.6947. It beats every other submission by 0.09 or more, and the TF-IDF reference (0.60–0.61) by 0.07.
+  - **Two ingredients:** A has the most informative frozen features (the probe alone gives 0.606), and LORMA fine-tuning adds +0.088 on top.
+  - **The probe initialisation was decisive.** The same LORMA from a randomly initialised head collapsed to a constant prediction in four runs; see What failed.
+  - **Ranking:**
+
+    | Rank | Submission | Model + technique | Codabench |
+    |---|---|---|---|
+    | 1 | S1 | A + LORMA, LP-FT | 0.680 |
+    | 2 | S5 | KD student, 2-layer C | 0.592 |
+    | 3 | S2 | C, layer-wise FT | 0.562 |
+    | 4 | S4 | D + adapters | 0.527 |
+    | 5 | S3 | B + BitFit | 0.491 |
+
+- **PEFT vs full adaptation:**
+  - Full fine-tuning of a 100M+ model on 31.6k cases × 2 chunks of 510 tokens would not fit the T4 time budget, so it was not run.
+  - The closest to full adaptation is S2, which fine-tunes C's whole top LSTM layer and final norm. It is stable but plateaus at 0.56.
+  - LORMA (S1) changes every projection in A only slightly and gets 0.68. Bias-only BitFit (S3) is too weak, at 0.49 and barely above chance on dev (prediction spread 0.007).
+  - Here the method that makes a *small, multiplicative change to every layer*, starting from a sensible head, beat the one that changes *one whole layer*.
+- **Long-document representation:**
+  - Documents run to a median of 2.6k–3.8k tokens and up to 488k, so only a few 510-token chunks per case are encoded.
+  - Each chunk becomes [mean ; final state ; attention pooling] over standardised token states, and the chunks are combined by learned attention with a "position from the end" embedding.
+  - **Per-dimension standardisation of token states was essential.** A's residual stream has a few dimensions with |x| ≈ 46 against a mean of 2. Without standardisation those dimensions dominate every normalisation, which was the cause of the second collapse.
+- **Which sections are useful:** the end of the judgment.
+  - In the last 1,000 characters, "set aside" occurs in 25% of label-1 cases vs 6.6% of label-0 cases, and "dismissed" in 6.9% vs 17.4%. In the first 1,000 characters these rates are nearly equal.
+  - Section analysis for S1: first 2 chunks 0.593 vs **last 2 chunks 0.695**; last 4 is 0.689 and last 8 is 0.688. For A, the last two chunks hold all the usable signal.
+  - The weaker LSTM student keeps gaining from more context: first 2 0.541 → last 2 0.591 → last 4 0.602 → last 8 0.613. It cannot extract as much from two chunks.
+- **Class imbalance:** train is 59/41 and dev/test 50/50.
+  - We used class-weighted cross-entropy (balanced weights) and chose the decision threshold on dev-clean for Macro-F1 (S1: 0.41).
+  - Duplicate texts in train (5,734) were removed first, so the weights reflect unique cases.
+- **False positives vs false negatives** (label-1 P/R on Codabench):
+  - S1 has P 0.662 / R 0.744, so it errs towards predicting 1, the appeal accepted. The low threshold (0.41) chosen for Macro-F1 trades some false positives for fewer missed acceptances.
+  - The C and D models do the opposite (S2 P 0.574 / R 0.503, S4 0.534 / 0.478, S5 0.603 / 0.552): they miss more acceptances.
+  - BitFit (S3: P 0.502 / R 0.634) leans to 1 without separating the classes.
+  - The likely source of errors in both directions is that the ruling sentence itself has been removed. The models rely on indirect cues (the court's reasoning, "set aside" in quotations from lower courts), which point the wrong way when a case is partly allowed or remanded.
+- **Did KD preserve performance?** It did better than preserve it.
+  - The 2-layer LSTM student (S5) distilled from S2 reached 0.592 on test vs the teacher's 0.5615, and 0.613 vs 0.5615 on dev-clean, with 78% agreement.
+  - **No efficiency gain:** total parameters fall only to ~87% because the 64M-parameter embedding dominates. Test prediction time was unchanged (22.8 s vs 22.5 s): cuDNN pipelines the LSTM layers, and building batches on the CPU is the bottleneck.
+  - KD worked here as a *regulariser* on a weak, noisy signal, not as compression.
+- **Cost:**
+  - S1 (LP-FT, 4 epochs) is the most expensive at 91.1 min training plus 8 min of probe features. It is also the only run clearly above the TF-IDF reference.
+  - S3 is the cheapest (29.7 min) and the weakest.
+  - Per minute of training, S2 (63.9 min, 0.56) and S5 (49.5 min, 0.59) are close to S1, but none of the cheaper runs reaches its score.
+- **Did Phase-1 representations transfer?**
+  - The frozen A probe already reaches 0.606, close to TF-IDF on the full text (0.613), from only the last ~1k tokens.
+  - Adapting A with LORMA lifts this to 0.695, above any text-only baseline.
+  - The C, D and B features carry less: their adapted models reach 0.49–0.61. The ranking A > C > D > B matches Phase 3.
+- **Dev-clean predicted test:** S1 0.695 → 0.680, S2 0.562 → 0.562, S5 0.613 → 0.592. The larger drops for S4 (0.578 → 0.527) and S3 (0.531 → 0.491) were in the two models whose dev predictions were nearly constant.
 
 ## What failed
 - **First S1 run (15 Oct): chunk vector = mean ⊕ final `[EOS]` state.** 3 epochs (64 min on 2×T4) and the model never left chance: every dev-clean case got P(label=1) ≈ 0.53, Macro-F1 0.3333 at every threshold and section setting. Diagnosis: averaging 512 token states — and the `[EOS]` state, which mostly encodes "end of text" — washes out the few decisive words; frozen features varied by only ~0.02 across cases (vs magnitude ~0.48), and even logistic regression on them was near chance on a synthetic task whose answer is in the last sentence. The pipeline itself could overfit 16 cases, so gradients were fine. **Fix:** token-level attention pooling inside each chunk (+ LayerNorm); on the same synthetic task it reaches dev Macro-F1 1.00 by epoch 4, where mean+`[EOS]` stays near chance. A "spread of predictions" readout per epoch now flags this kind of collapse immediately.
@@ -72,7 +112,6 @@ Answer each "Expected Analysis" bullet from the capstone doc for this phase:
 - **Third S1 run (19 Oct): + per-dimension standardisation.** Collapsed again (spread 0.000 from the first check, train loss → 0.6935; Codabench 0.3475 — 1,497 of ~1,500 test cases predicted 1). In the same round S2 (C, LSTM, no dropout-sensitive outliers) learned steadily, S4 (D) only escaped the constant solution late in epoch 3, and S3 (B) stayed weak — all three Transformer/TCN backbones struggled, the LSTM did not. **Root cause found:** the frozen backbone was left in *train mode*, so its dropout was active during training (the diagnostic probes used eval mode, which is why they worked). Dropping one of A's huge outlier dimensions (|x| ≈ 46) changes the final LayerNorm statistics of the whole token vector, so every training chunk gets large random noise that never appears at test time and the cheapest solution is a constant prediction. **Fix (S1 v4):** frozen backbone forced to `eval()` inside the training loop (adapter/head still train). Synthetic reproduction with outlier dimensions, 5 epochs: old version plateaus/oscillates at 0.52–0.57 dev Macro-F1 (spread 0.013–0.021), fixed version rises every epoch 0.544 → 0.639 (spread 0.024–0.036).
 - **Fourth S1 run (19 Oct): + frozen backbone in eval mode (no dropout).** Collapsed again in epoch 1 (spread warning, ~27 min) → dropout was not the (only) cause. Most likely explanation: with a randomly initialised head, the first LORMA updates (LR 5e-4, multiplicative, on every projection that writes into the residual stream) amplify A's huge residual dimensions and destroy the features before the head finds the weak signal; C (LSTM, no such dimensions, LR 1e-4) is unaffected. **S1 v5 = LP-FT** (Kumar et al., 2022): logistic-regression probe on frozen features of all train cases → copied into the classifier ("epoch 0") → gentle LORMA + classifier fine-tuning (LR 1e-4, 2 epochs); the best of epochs 0–2 on dev-clean is kept, so the result can't fall below the probe.
 - **Task difficulty:** with the TF-IDF reference at ≈0.60–0.61 and frozen probes at ≈0.55–0.58, realistic Phase 4 scores are in the high 0.5s to mid 0.6s.
-Experiments that didn't work and the likely reason.
 
 ## Kaggle links
-Notebooks, output datasets, checkpoints.
+Base checkpoints are the Phase-1 datasets (`code/phase1/README.md`); S5's teacher is read from `rohitji1/p4-s2-output-dataset`. Notebook links will be added after Phase 7.

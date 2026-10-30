@@ -3,7 +3,11 @@
 **Window:** 12–16 Oct 2026 · **Metric:** Macro-F1 (secondary: Macro-P, Macro-R) · **Data:** `Phase_3_RR/` · **Min submissions:** 4
 
 ## Task & output format
-<one paragraph + the prediction.json shape>
+Label every sentence of an Indian judgment with one of 13 rhetorical roles: Fact, Issue, ArgumentPetitioner, ArgumentRespondent, Statute, Dissent, PrecedentReliedUpon, PrecedentNotReliedUpon, PrecedentOverruled, RulingByLowerCourt, RatioOfTheDecision, RulingByPresentCourt, None. The judgments come from two domains, CL (competition law) and IT (income tax). The test set has 10 documents (5 per domain), and the submission gives one label per sentence, in order:
+
+```json
+{"<doc_id>": ["Fact", "Fact", "ArgumentPetitioner", ..., "RulingByPresentCourt"], ...}
+```
 
 ## Data analysis
 Reproduce with `python data_analysis.py <Phase_3_RR dir> ../../tokenizer/tokenizer.json`.
@@ -52,6 +56,8 @@ Submission: one `prediction.json` covering all 10 test docs (5 CL + 5 IT), `{doc
 | S3 | `P3_S3_B_Encoder_IA3.ipynb` | B Encoder–Decoder (encoder only) | IA³ on keys, values, FFN activations of 6 layers + doc BiLSTM | 2.40M / 84.12M (IA³ 27.6K) | 24.8 min (20 ep, best 15) | 4.29 GB | 0.2188 (13-label); 0.2586 present (CL 0.243, IT 0.262) | 0.2364 (P 0.308, R 0.252) | |
 | S7 | `P3_S7_A_LoRA_CRF_TrainDev.ipynb` | A Decoder-only | LoRA (attn + FFN, r=8) + doc BiLSTM-CRF; Stage 2 on train+dev | 3.70M (LoRA 1.33M) | 42.6 + 33.0 min (Stage 1 best ep 11) | 8.95 GB | 0.4497 (13-label, Stage 1, Viterbi); 0.5314 present | **0.5019** (P 0.537, R 0.494) | |
 | S4 | `P3_S4_D_TCN_PromptTuning.ipynb` | D Dilated Residual TCN | Prompt tuning (20 soft tokens) + doc BiLSTM | 2.66M / 116.81M (prompt 20.5K) | 35.0 min (20 ep, best 20) | 3.50 GB | 0.3289 (13-label); 0.3886 present (CL 0.325, IT 0.405) | 0.3391 (P 0.363, R 0.347) | |
+| S5 | `P3_S5_A_Prefix_CRF_TrainDev.ipynb` | A Decoder-only | Prefix tuning (20 virtual tokens × 12 layers, MLP-reparameterised) + doc BiLSTM-CRF; Stage 2 on train+dev | 12.24M (prefix MLP 9.86M during training) | 41.3 + 46.7 min (Stage 1 best ep 20) | 5.12 GB | 0.4249 (13-label, Stage 1, Viterbi); 0.5021 present | 0.4527 (P 0.499, R 0.467) | |
+| S6 | `P3_S6_KD_S7Teacher_6LayerStudent.ipynb` | A, 6 of 12 layers (student) | KD from S7 (T=2) + LoRA + doc BiLSTM-CRF; Stage 2 on train+dev | 3.04M / 85.54M (teacher 128.73M) | 30.5 + 29.1 min (Stage 1 best ep 17) | 4.64 GB | 0.4579 (13-label, Stage 1, Viterbi; teacher 0.4497) | **0.5184** (P 0.582, R 0.502) | |
 
 ## Method details
 ### Shared design (all submissions)
@@ -147,16 +153,44 @@ Teacher = S7 (12-layer A + LoRA attn/FFN + BiLSTM-CRF), loaded from its saved ch
 
 Dev and test rankings agree for every pair of submissions, so the dev set — although only 10 documents — was a reliable guide.
 
-Answer each "Expected Analysis" bullet from the capstone doc for this phase:
-- Which technique/model worked best, and why
-- PEFT vs full adaptation
-- Effect of context / long-document strategy
-- Hard classes and error examples
-- Did KD preserve performance? Size/memory/latency trade-off
-- Did Phase-1 representations transfer?
+### Expected Analysis
+- **Techniques compared:** five adaptation methods on all four backbones, plus one distillation run.
+  - LORMA on C (S1), LoRA on A (S2, S7), IA³ on the B encoder (S3), prompt tuning on D (S4), prefix tuning on A (S5), and KD from S7 into a half-depth A (S6).
+  - LoRA was the best method: S7 0.502 and S6 0.518, the latter distilled from the LoRA model. Then come prefix tuning (0.453), LORMA on the LSTM (0.402), prompt tuning (0.339) and IA³ (0.236).
+  - The methods that add *new directions* to the weight matrices (LoRA, LORMA) beat those that only rescale features (IA³) or add inputs (prompt and prefix tuning).
+- **PEFT vs full adaptation:** every Phase 3 run is parameter-efficient: 0.02–10% of backbone parameters train, plus the document head.
+  - We did not run full fine-tuning here. In Phase 2 it was clearly worse on a similarly small corpus (A full FT 0.19 vs C + LORMA 0.49), and here a single LoRA run already needs 6.7–9.0 GB.
+  - Within PEFT, capacity matters up to a point. IA³ (27.6K parameters) underfits, with train loss still 1.49 after 20 epochs. LoRA on attention + FFN (1.33M) beats LoRA on attention only (0.59M): S7 0.502 vs S2 0.483, although S7 also adds the CRF and dev data.
+- **Effect of context:** the largest single effect in the phase.
+  - A linear classifier on the same sentence vectors, without the document BiLSTM, scores 0.12–0.28. With the BiLSTM the score roughly doubles: C 0.235 → 0.476, A 0.283 → 0.440, D 0.226 → 0.329.
+  - Adding a CRF over the role sequence gives another +0.019 to +0.042 (Viterbi vs per-sentence argmax), because roles follow a typical order: facts → arguments → precedents → ratio → ruling.
+  - Documents reach 70k tokens, so they are never fed whole. Sentences (≤128 tokens) are encoded separately and the document is modelled as a sequence of sentence vectors in windows of 128 sentences.
+- **Confusable roles:**
+  - PrecedentReliedUpon vs PrecedentNotReliedUpon. They are the same kind of sentence, and the difference is whether the court *accepts* the precedent, which is often stated later. S2 over-predicted NotReliedUpon (P 0.12).
+  - ArgumentRespondent vs ArgumentPetitioner and Ratio. Respondent recall stayed at 0.26–0.28 until the CRF (0.48) and KD (0.54).
+  - RatioOfTheDecision absorbs respondent arguments and lower-court rulings: S1 P 0.35 / R 0.64, S5 recall 0.82 with precision 0.42.
+  - Issue (15 dev sentences) and None are rare and inconsistent.
+  - Statute and RulingByPresentCourt are easy for every model ("Section …", "the appeal is dismissed").
+- **CL vs IT:** IT is consistently easier (S2 present-label F1 CL 0.475 / IT 0.531; S6 0.452 / 0.548).
+  - CL has longer documents (up to 1,816 sentences), the Dissent label, which appears only in CL train, and far more argument sentences in dev (41% vs 12%), the hardest roles.
+  - Training on both domains together with a domain embedding was used throughout. A per-domain model would have had only 40 training documents.
+- **KD:** a 6-layer student (layers 0, 2, …, 10 of A) distilled from S7 *beat* its teacher: dev 0.458 vs 0.450, test 0.518 vs 0.502.
+  - It has 66.4% of the parameters, runs 1.51× faster at dev labelling (3.0 vs 4.5 s) and uses about half the memory (4.64 vs 8.95 GB).
+  - The teacher's soft distribution over 13 roles regularises training on 80 documents. With only 10 test documents, the honest claim is "KD kept all of the teacher's quality at two-thirds of the size".
+- **Cost:**
+  - Cheapest: S1 (LORMA, 24.6 min, 2.2 GB) and S3 (IA³, 24.8 min, 4.3 GB).
+  - Most expensive: S7 (75.6 min over two stages, 9.0 GB).
+  - Best score per minute and per GB: S1, because the LSTM is light. Best absolute score: S6, at less than half S7's memory.
+  - Rewriting the TCN convolution (S4) cut its epoch time from ~220 to 1.8 min with identical outputs.
+- **Did Phase-1 representations transfer?** Yes, and the backbone ranking is visible before any adaptation.
+  - Frozen-feature probes give A 0.283 > C 0.235 > D 0.226 > B encoder 0.117, and the adapted models follow the same order.
+  - This reverses Phase 2, where C was far ahead. Sentence-level discourse roles suit the Transformer, and character-level boundaries suited the LSTM with LORMA.
 
 ## What failed
-Experiments that didn't work and the likely reason.
+- **S4's first run:** the dilated convolutions fell back to a very slow kernel (about 220 min per epoch) and hit Kaggle's 12-hour limit after 3 epochs (dev 0.179). It was fixed by computing each causal convolution as per-tap matrix multiplies; see Method details.
+- **IA³ on the B encoder (S3):** it underfits. With 27.6K parameters on the weakest frozen features (probe 0.117), only roles with strong lexical cues survive, and RulingByLowerCourt and Issue score 0.00.
+- **Prefix tuning (S5):** it learns slowly and was still improving at epoch 20. It finished 0.049 below LoRA (S7) on test under an identical pipeline.
+- **Metric convention:** sklearn's macro average skips labels absent from both gold and prediction. Dev therefore reported 0.476 (present labels) while Codabench gave 0.402, close to the 13-label average. From S2 on, both are reported and model selection uses the 13-label value.
 
 ## Kaggle links
-Notebooks, output datasets, checkpoints.
+Base checkpoints are the Phase-1 datasets (`code/phase1/README.md`); S6 reads S7's outputs from `P3_S7_Dataset`. Notebook links will be added after Phase 7.

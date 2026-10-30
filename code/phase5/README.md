@@ -53,6 +53,56 @@ Findings:
 
 **S4 (knowledge distillation):** the S1+S2+S3 ensemble is a genuinely stronger teacher (0.3119 vs 0.2981 for S1, +0.014). The B-encoder student (82.6M parameters, 24% of the teacher's 346.5M; 0.9M trained) keeps 69% of the teacher's Macro-F1 (0.2152) and agrees with it on 93.7% of (case, statute) decisions; test prediction 212 s on one T4. Frozen B features are the weakest of the four models (probe 0.164 vs 0.229–0.271), and fine-tuning with the teacher's soft targets added the largest gain of all runs (+0.051), still rising at epoch 3. Rare statutes suffer most in the student (Q1 0.105 vs 0.199 for S1).
 
+## Analysis (Expected Analysis)
+- **Techniques compared:** LORMA on A (S1), layer-wise fine-tuning on C (S2), bottleneck adapters on D (S3), and KD into the B encoder with LoRA (S4). All four use the same LP-FT multi-label pipeline, so only the backbone and the technique change.
+  - S1 is best: 0.3037 on Codabench, while tuning only 1.3% of A.
+  - S2 tunes 13% of C (10× more parameters) and lands lower at 0.263. As in Phase 4, small changes to every layer of the strongest backbone beat a full update of one layer of a weaker one.
+  - S3 (D + adapters, 0.273) beats S2 on test with 8× fewer trainable parameters.
+- **Long-document strategy:**
+  - Documents are much shorter than in Phase 4 (median 628 tokens; 92% fit in 8 chunks of 512), so up to 8 chunks are read and pooled with [mean ; max] over chunks.
+  - For longer cases, *evidence-based* selection keeps the first and last chunk plus the chunks with the most "Section" / "Act" tokens (the `<SECTION>` / `<ACT>` placeholders are turned back into these words). The test predictions use up to 16 chunks for S1 and S4.
+  - **Section analysis:** first chunk only loses 0.034–0.037. Evidence-based selection is best for all three models, but only +0.002–0.003 over the first 8 or evenly spaced 8 chunks, because almost every case already fits.
+  - Unlike Phase 4, where the signal sat at the end, statute evidence is spread through the facts and procedure. Coverage matters more than position.
+- **Rare statutes:** per-statute F1 rises with training frequency in every model (S1: lowest quartile 0.199 → highest 0.449; rank correlation ≈ 0.6). Frequency does not explain everything:
+  - mid-frequency statutes 20 and 28 reach ≈ 0.75 because they co-occur strongly (P(28|20) = 0.93);
+  - the frequent statute 52 (1,084 train cases) stays at F1 ≤ 0.11.
+  - The distilled student suffers most on the rare quartile (0.105 vs 0.199 for S1).
+- **Loss and balancing:** binary cross-entropy per statute with positive weight √(neg/pos), capped at 10.
+  - This lifts rare statutes without letting the rarest (272 train cases, weight ≈ 10) dominate.
+  - Together with per-statute thresholds, the models predict ~5.8 statutes per case against 3.9 gold. This recall-leaning behaviour is what maximises per-statute F1 when most statutes are rare.
+  - Every case gets at least one statute, since there are no empty gold sets.
+- **Thresholds:**
+  - Per-statute thresholds tuned *and scored* on the same dev data overstate Macro-F1 by ~0.015.
+  - The README therefore reports **cross-fitted** estimates: thresholds tuned on one half of dev, scored on the other, then swapped.
+  - Cross-fitted per-statute thresholds were about equal to one global threshold for S1, and slightly better for S2 and S3.
+  - These estimates were within ±0.01 of Codabench for all four runs, the best dev-to-test agreement of any phase.
+- **Label co-occurrence:** strong pairs exist (28|20 0.93, 53|21 0.92, 34|33 0.89, 12↔13 ≈ 0.85), but 42% of dev cases have a label set never seen in train.
+  - Statutes are therefore predicted independently (binary relevance), and co-occurrence is learned through the shared case representation, not by classifying whole label sets.
+  - Subset accuracy stays very low (0.003–0.016) for every model, as expected with 16k distinct sets.
+  - Cases with more statutes are easier per statute (S1 example-F1: 1 statute 0.21 → 7+ statutes 0.48). Larger sets usually contain the common, co-occurring statutes.
+- **Confused statutes:** the typical error is *a specific statute missed and a generic frequent one predicted instead*. For example, 12/13/14 are missed while 5 is predicted, and 34/77/61 are missed while 97 is predicted.
+  - Statutes 5 and 97 are the first and third most frequent in train (11,730 and 7,880 cases).
+  - With `<SECTION>` and `<ACT>` masked (explicit "section N" survives in only 2% of cases), the model falls back on the statute most typical for the kind of case.
+- **KD:** the teacher is the average of S1 + S2 + S3, a genuinely stronger model: dev 0.3119 vs 0.2981 for S1, with 346.5M parameters.
+  - The B-encoder student (82.6M, 24% of the teacher; 0.9M trained) keeps 69% of the teacher's Macro-F1 (0.2152 dev, 0.2196 test) and agrees on 93.7% of (case, statute) decisions.
+  - KD gave the largest fine-tuning gain of any run (+0.051 over its probe), but the student starts from the weakest frozen features (probe 0.164). Unlike Phases 3–4, it does not catch up with the teacher.
+- **Cost:**
+  - S1: 162.8 min, 1.63M trainable.
+  - S2: 146.6 min, 13.6M.
+  - S3: 100.3 min, 1.73M.
+  - S4: 73.0 min, 0.90M; test prediction 212 s on one T4.
+  - S3 is the best trade-off of the non-KD runs (second-best test score at 62% of S1's time). S1 is best overall.
+- **Did Phase-1 representations transfer?** Yes. A linear probe on frozen features already reaches 0.23–0.27 (A 0.271 > C 0.241 > D 0.229 > B 0.164), and fine-tuning adds +0.027 to +0.051. The backbone ranking is the same as in Phases 3 and 4.
+
+## What failed
+- **The KD student did not reach its teacher** (69% kept). The B encoder's frozen features are too weak for 100 statutes, and three epochs were not enough: it was still rising at epoch 3. A student from the A family, as in Phase 3, would probably keep more.
+- **All four runs were still improving at epoch 3**, with the Kaggle time limits as the constraint. More epochs, or a probe on more chunks, are the clearest remaining gains.
+- **Evidence-based chunk selection** was designed around the `<SECTION>` placeholders, but gained only +0.002–0.003, because most cases already fit in 8 chunks.
+- **The ensemble (S5)** was the best dev model (0.3119, cross-fitted). Its Codabench score was not recorded.
+
+## Kaggle links
+Base checkpoints are the Phase-1 datasets (`code/phase1/README.md`); S4 and S5 read the outputs of S1–S3 from `Phase5_S{1,2,3}_Dataset`. Notebook links will be added after Phase 7.
+
 ## Notebooks
 - `P5_S5_Ensemble.ipynb` — CPU only: averages the saved per-statute probabilities of S1–S4 (S4 optional), scores single models and fixed combinations (S1+S2+S3, +S4, 2·S1+S2+S3) on dev with cross-fitted per-statute thresholds, picks the best, tunes thresholds on all of dev → `submission.zip`. Checks that dev/test ids and statute IDs match across runs.
 - `P5_S4_KD_Ensemble_to_BEncoder_LoRA.ipynb` — knowledge distillation: teacher = average probability of S1+S2+S3 (≈346M parameters; logits from `Phase5_S{1,2,3}_Dataset`, ids and statute IDs verified), student = Phase-1 B encoder (≈81M) + LoRA r=8 on qkv/out/fc1/fc2; loss = weighted BCE + 1.0·T²·BCE(σ(s/T), teacher soft targets), T = 2; same LP-FT multi-label pipeline. Local test: teacher ensemble > best member (+0.008), student 99.4% of teacher.
