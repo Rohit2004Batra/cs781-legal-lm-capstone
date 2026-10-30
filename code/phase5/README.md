@@ -38,7 +38,7 @@ Shared: chunks across the whole document with max/mean pooling, BCE with capped 
 | S2 | `P5_S2_C_LSTM_LayerwiseFT.ipynb` | C + layer-wise FT, LP-FT | 13.63M / 103.9M (13.1%) | 146.6 min | 0.2414 | 0.2519 | 0.2635 | 0.2728 | 0.2705 | 0.3728 | evidence_8 | 0.2632 (Micro 0.369, subset 0.012) |
 | S3 | `P5_S3_D_TCN_Adapters.ipynb` | D + adapters, LP-FT | 1.73M / 115.9M (1.49%) | 100.3 min | 0.2286 | 0.2341 | 0.2601 | 0.2707 | 0.2660 | 0.3810 | evidence_8 | 0.2730 (Micro 0.376, subset 0.014) |
 | S4 | `P5_S4_KD_Ensemble_to_BEncoder_LoRA.ipynb` | KD: S1+S2+S3 ensemble → B encoder + LoRA | 0.90M / 82.6M (1.09%) | 73.0 min | 0.1644 | 0.1681 | 0.2059 | 0.2152 | 0.2056 | 0.3101 | evidence_16 | 0.2196 (Micro 0.314, subset 0.003) |
-| (teacher) | ensemble of S1+S2+S3 logits | average probability | — / 346.5M | — | — | — | — | **0.3119** | 0.3063 | 0.4098 | — | not submitted yet |
+| (teacher) | ensemble of S1+S2+S3 logits | average probability | — / 346.5M | — | — | — | — | **0.3119** | 0.3063 | 0.4098 | — | not submitted |
 
 **Codabench vs dev:** S1 0.3037 (dev 0.2981), S2 0.2632 (0.2728), S3 0.2730 (0.2707), S4 0.2196 (0.2152) — the cross-fitted dev estimate was within ±0.01 of the test score for every run, and the ranking A > D ≈ C > B(student) held.
 
@@ -98,13 +98,14 @@ Findings:
 - **The KD student did not reach its teacher** (69% kept). The B encoder's frozen features are too weak for 100 statutes, and three epochs were not enough: it was still rising at epoch 3. A student from the A family, as in Phase 3, would probably keep more.
 - **All four runs were still improving at epoch 3**, with the Kaggle time limits as the constraint. More epochs, or a probe on more chunks, are the clearest remaining gains.
 - **Evidence-based chunk selection** was designed around the `<SECTION>` placeholders, but gained only +0.002–0.003, because most cases already fit in 8 chunks.
-- **The ensemble (S5)** was the best dev model (0.3119, cross-fitted). Its Codabench score was not recorded.
+- **The ensemble (S5)** was the best dev model (0.3119, cross-fitted), but it was **not submitted**. Phase 5 has exactly four Codabench submissions (S1–S4), one per Phase-1 backbone, as the rules require. The ensemble served only as the KD teacher for S4.
 
 ## Kaggle links
-Base checkpoints are the Phase-1 datasets (`code/phase1/README.md`); S4 and S5 read the outputs of S1–S3 from `Phase5_S{1,2,3}_Dataset`. Notebook links will be added after Phase 7.
+Base checkpoints are the Phase-1 datasets (`code/phase1/README.md`); S4 (and the unsubmitted S5 ensemble) read the outputs of S1–S3 from `Phase5_S{1,2,3}_Dataset`. Notebook links will be added after Phase 7.
 
 ## Notebooks
-- `P5_S5_Ensemble.ipynb` — CPU only: averages the saved per-statute probabilities of S1–S4 (S4 optional), scores single models and fixed combinations (S1+S2+S3, +S4, 2·S1+S2+S3) on dev with cross-fitted per-statute thresholds, picks the best, tunes thresholds on all of dev → `submission.zip`. Checks that dev/test ids and statute IDs match across runs.
+- `P5_zero.ipynb` — *not submitted*, a format check only: writes an empty prediction for every case (guaranteed score 0).
+- `P5_S5_Ensemble.ipynb` — *not submitted*. CPU only: averages the saved per-statute probabilities of S1–S4 (S4 optional), scores single models and fixed combinations (S1+S2+S3, +S4, 2·S1+S2+S3) on dev with cross-fitted per-statute thresholds, picks the best, tunes thresholds on all of dev → `submission.zip`. Checks that dev/test ids and statute IDs match across runs.
 - `P5_S4_KD_Ensemble_to_BEncoder_LoRA.ipynb` — knowledge distillation: teacher = average probability of S1+S2+S3 (≈346M parameters; logits from `Phase5_S{1,2,3}_Dataset`, ids and statute IDs verified), student = Phase-1 B encoder (≈81M) + LoRA r=8 on qkv/out/fc1/fc2; loss = weighted BCE + 1.0·T²·BCE(σ(s/T), teacher soft targets), T = 2; same LP-FT multi-label pipeline. Local test: teacher ensemble > best member (+0.008), student 99.4% of teacher.
 - `P5_S3_D_TCN_Adapters.ipynb` — D + 64-d bottleneck adapters after every TCN block (identity at start), same LP-FT multi-label pipeline; adapter LR 3e-4, head 1e-4, frozen TCN without dropout. Local test (synthetic): probe 0.971 → 0.972.
 - `P5_S2_C_LSTM_LayerwiseFT.ipynb` — C + layer-wise fine-tuning (top LSTM layer + final LayerNorm), same LP-FT multi-label pipeline as S1 (LSTM kept in train mode for cuDNN). Local test (synthetic): probe 0.91 → 0.91.
