@@ -16,6 +16,13 @@ Final PDF name: `CS781-CP-Rohit-Batra-261110054-report.pdf`
 10. **Conclusion.**
 11. **GitHub link** + **LLM declaration** (questionnaire from template).
 
+## Figures and tables (built by `python report/make_figures.py`)
+- `figures/fig1_scores_by_phase_and_backbone`: best Codabench score per backbone, one panel per phase → §7 cross-phase analysis.
+- `figures/fig2_validation_vs_codabench`: local validation vs test, Phases 2–5 → §6 (the validation protocols were reliable).
+- `figures/fig3_phase6_decoding_tuning`: original vs tuned decoding, same weights → §6 Phase 6.
+- `figures/fig4_context_and_sections`: Phase 3 context ablation and Phase 4 section analysis → §6.
+- `tables/scores_by_backbone.tex`, `tables/best_per_phase.tex`: LaTeX tables (Markdown copies alongside).
+
 ## Appendix
 - A. Full hyperparameter tables per submission
 - B. Every Codabench submission (from `results/submissions.csv`)

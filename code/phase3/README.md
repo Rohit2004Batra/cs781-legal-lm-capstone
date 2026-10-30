@@ -162,7 +162,7 @@ Dev and test rankings agree for every pair of submissions, so the dev set — al
   - We did not run full fine-tuning here. In Phase 2 it was clearly worse on a similarly small corpus (A full FT 0.19 vs C + LORMA 0.49), and here a single LoRA run already needs 6.7–9.0 GB.
   - Within PEFT, capacity matters up to a point. IA³ (27.6K parameters) underfits, with train loss still 1.49 after 20 epochs. LoRA on attention + FFN (1.33M) beats LoRA on attention only (0.59M): S7 0.502 vs S2 0.483, although S7 also adds the CRF and dev data.
 - **Effect of context:** the largest single effect in the phase.
-  - A linear classifier on the same sentence vectors, without the document BiLSTM, scores 0.12–0.28. With the BiLSTM the score roughly doubles: C 0.235 → 0.476, A 0.283 → 0.440, D 0.226 → 0.329.
+  - A linear classifier on the same sentence vectors, without the document BiLSTM, scores 0.12–0.28. With the BiLSTM the score roughly doubles: C 0.235 → 0.476, A 0.283 → 0.440, D 0.226 → 0.329. S1's 0.476 averages present labels only; on all 13 labels it is ≈ 0.40.
   - Adding a CRF over the role sequence gives another +0.019 to +0.042 (Viterbi vs per-sentence argmax), because roles follow a typical order: facts → arguments → precedents → ratio → ruling.
   - Documents reach 70k tokens, so they are never fed whole. Sentences (≤128 tokens) are encoded separately and the document is modelled as a sequence of sentence vectors in windows of 128 sentences.
 - **Confusable roles:**
