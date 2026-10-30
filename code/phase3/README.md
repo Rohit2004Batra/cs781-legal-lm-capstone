@@ -195,4 +195,15 @@ Dev and test rankings agree for every pair of submissions, so the dev set — al
 - **Metric convention:** sklearn's macro average skips labels absent from both gold and prediction. Dev therefore reported 0.476 (present labels) while Codabench gave 0.402, close to the 13-label average. From S2 on, both are reported and model selection uses the 13-label value.
 
 ## Kaggle links
-Base checkpoints are the Phase-1 datasets (`code/phase1/README.md`); S6 reads S7's outputs from `P3_S7_Dataset`. Notebook links will be added after Phase 7.
+
+| Submission | Notebook (repo) | Kaggle notebook | Output dataset |
+|---|---|---|---|
+| S1: Stacked LSTM + LORMA | `P3_S1_C_LSTM_LORMA.ipynb` | [link](https://www.kaggle.com/code/rohitbatra2004/p3-s1-c-lstm-lorma) | — (submission only) |
+| S2: Decoder + LoRA | `P3_S2_A_Decoder_LoRA.ipynb` | [link](https://www.kaggle.com/code/rohitbatra2004/p3-s2-a-decoder-lora) | — (submission only) |
+| S3: En_De (encoder) + IA3 | `P3_S3_B_Encoder_IA3.ipynb` | [link](https://www.kaggle.com/code/rohitbatra2004/p3-s3-b-encoder-ia3) | — (submission only) |
+| S4: TCN + Prompt Tuning | `P3_S4_D_TCN_PromptTuning.ipynb` | [link](https://www.kaggle.com/code/rohitbatra2004/p3-s4-d-tcn-prompttuning) | — (submission only) |
+| S5: Decoder + Prefix Tuning + CRF | `P3_S5_A_Prefix_CRF_TrainDev.ipynb` | [link](https://www.kaggle.com/code/rohitbatra2004/p3-s5-a-prefix-crf-traindev) | — (submission only) |
+| S6: Decoder + Know Distillation (S7 teacher -> 6-layer student) | `P3_S6_KD_S7Teacher_6LayerStudent.ipynb` | [link](https://www.kaggle.com/code/rohitbatra2004/p3-s6-kd-s7teacher-6layerstudent) | — (submission only) |
+| S7: Decoder + LoRA + CRF | `P3_S7_A_LoRA_CRF_TrainDev.ipynb` | [link](https://www.kaggle.com/code/rohitbatra2004/p3-s7-a-lora-crf-traindev) | [link](https://www.kaggle.com/datasets/rohitbatra2004/p3-s5-dataset) |
+
+S6 reads its teacher from S7's dataset. Its URL keeps the old name `p3-s5`; the dataset is titled P3_S7_Dataset. S2 and S5 were not kept on Codabench.

@@ -135,4 +135,10 @@ Spans are `[start_char, end_char)` with an exclusive end; every test document id
 - **S4:** no Phase-2 teacher from another architecture was available, so the distillation is within D.
 
 ## Kaggle links
-Base checkpoints are the Phase-1 datasets (`code/phase1/README.md`). Notebook links will be added after Phase 7.
+
+| Submission | Notebook (repo) | Kaggle notebook | Output dataset |
+|---|---|---|---|
+| De + Full_Fine | `S1_Decoder_FullFineTuning.ipynb` | [link](https://www.kaggle.com/code/rohitbatra2004/updated-phase2-s1) | — (submission only) |
+| En_DE + LORA | `S2_Encoder_Decoder_LORA.ipynb` | [link](https://www.kaggle.com/code/rohitbatra2004/updated-phase2-s2) | — (submission only) |
+| Stacked LSTM + LORMA | `S3_StackedLSTM_LORAM.ipynb` | [link](https://www.kaggle.com/code/rohitbatra2004/phase2-s3) | — (submission only) |
+| TCN + Know Distillation | `S4_TCN_KnowDist.ipynb` | [link](https://www.kaggle.com/code/ruchikhemka/phase2-s4) | — (submission only) |

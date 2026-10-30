@@ -101,7 +101,15 @@ Findings:
 - **The ensemble (S5)** was the best dev model (0.3119, cross-fitted), but it was **not submitted**. Phase 5 has exactly four Codabench submissions (S1–S4), one per Phase-1 backbone, as the rules require. The ensemble served only as the KD teacher for S4.
 
 ## Kaggle links
-Base checkpoints are the Phase-1 datasets (`code/phase1/README.md`); S4 (and the unsubmitted S5 ensemble) read the outputs of S1–S3 from `Phase5_S{1,2,3}_Dataset`. Notebook links will be added after Phase 7.
+
+| Submission | Notebook (repo) | Kaggle notebook | Output dataset |
+|---|---|---|---|
+| S1: Decoder + LORMA (LP-FT) | `P5_S1_A_LORMA.ipynb` | [link](https://www.kaggle.com/code/rohitbatra2004/p5-s1-a-lorma) | [link](https://www.kaggle.com/datasets/rohitbatra2004/phase5-s1-dataset) |
+| S2: Stacked LSTM + Layer-wise FT | `P5_S2_C_LSTM_LayerwiseFT.ipynb` | [link](https://www.kaggle.com/code/rohitkbatra/p5-s2-c-lstm-layerwiseft) | [link](https://www.kaggle.com/datasets/rohitkbatra/phase5-s2-dataset) |
+| S3: TCN + Adapters | `P5_S3_D_TCN_Adapters.ipynb` | [link](https://www.kaggle.com/code/ruchikhemka/p5-s3-d-tcn-adapters) | [link](https://www.kaggle.com/datasets/ruchikhemka/phase5-s3-dataset) |
+| S4: En_De (encoder) + LoRA + Know Distillation (S1+S2+S3 teacher) | `P5_S4_KD_Ensemble_to_BEncoder_LoRA.ipynb` | [link](https://www.kaggle.com/code/rohitbatra2004/p5-s4-kd-ensemble-to-bencoder-lora) | — (submission only) |
+
+S4 reads the S1–S3 datasets as its teacher.
 
 ## Notebooks
 - `P5_zero.ipynb` — *not submitted*, a format check only: writes an empty prediction for every case (guaranteed score 0).

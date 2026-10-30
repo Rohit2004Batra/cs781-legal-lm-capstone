@@ -108,7 +108,19 @@ The four **tuned** runs count as Phase 6's four submissions: S1-tuned 0.8354, S4
 - **The tuning grid edge:** S1's best decoding setting (minimum length 22%, penalty 1.2) lies on the edge of the grid. A wider grid might gain a little more, but that is a generation-only change.
 
 ## Kaggle links
-Base checkpoints are the Phase-1 datasets (`code/phase1/README.md`). S4 and the tuning notebooks read run outputs from `Phase6_S{1,2,3,4}_Dataset`. Notebook links will be added after Phase 7.
+
+| Submission | Notebook (repo) | Kaggle notebook | Output dataset |
+|---|---|---|---|
+| S1: Decoder + LORMA (tuned decoding) — final submission | `P6_S1_tune_generation.ipynb` | [link](https://www.kaggle.com/code/rohitbatra2004/p6-s1-tune-generation) | reads the training dataset |
+| S2: En_De + LoRA (tuned decoding) — final submission | `P6_S2_tune_generation.ipynb` | [link](https://www.kaggle.com/code/rohitbatra2004/p6-s2-tune-generation) | reads the training dataset |
+| S3: TCN + Houlsby Adapters (tuned decoding) — final submission | `P6_S3_tune_generation.ipynb` | [link](https://www.kaggle.com/code/ruchikhemka/p6-s3-tune-generation) | reads the training dataset |
+| S4: Stacked LSTM + Know Distillation (tuned decoding) — final submission | `P6_S4_tune_generation.ipynb` | [link](https://www.kaggle.com/code/rohitkbatra/p6-s4-tune-generation) | reads the training dataset |
+| S1 (training): Decoder + LORMA | `P6_S1_A_LORMA.ipynb` | [link](https://www.kaggle.com/code/rohitbatra2004/p6-s1-a-lorma) | [link](https://www.kaggle.com/datasets/rohitbatra2004/phase6-s1-dataset) |
+| S2 (training): En_De + LoRA | `P6_S2_B_EncDec_LoRA.ipynb` | [link](https://www.kaggle.com/code/rohitbatra2004/p6-s2-b-encdec-lora) | [link](https://www.kaggle.com/datasets/rohitbatra2004/phase6-s2-dataset) |
+| S3 (training): TCN + Houlsby Adapters | `P6_S3_D_TCN_HoulsbyAdapters.ipynb` | [link](https://www.kaggle.com/code/ruchikhemka/p6-s3-d-tcn-houlsbyadapters) | [link](https://www.kaggle.com/datasets/ruchikhemka/phase6-s3-dataset) |
+| S4 (training): Stacked LSTM + Know Distillation (S1 teacher) | `P6_S4_KD_A_to_C_LSTM.ipynb` | [link](https://www.kaggle.com/code/rohitkbatra/p6-s4-kd-a-to-c-lstm) | [link](https://www.kaggle.com/datasets/rohitkbatra/phase6-s4-dataset) |
+
+The training notebooks write `best.pt` + `data_cache.pt` to their datasets; the tuning notebooks re-decode them. S4 also reads S1's dataset as its teacher.
 
 ## Notebooks
 - `P6_S2_tune_generation.ipynb`, `P6_S3_tune_generation.ipynb`, `P6_S4_tune_generation.ipynb` — no training: each run's checkpoint + prepared data from `Phase6_S{2,3,4}_Dataset`, the run's own model and cached-generation code + a repetition penalty; grid on 60 validation documents: original (0.08 / 1.0) and minimum length 15/22/30% × penalty 1.2/1.35; best re-scored on all 150 validation documents; new test summaries.

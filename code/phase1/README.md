@@ -115,4 +115,13 @@ Token counts use the shared tokenizer below.
 - **Decoding was not tuned per model** against a local metric. Phase 6 later showed decoding settings alone can move ROUGE-1 by 6 points for the same weights.
 
 ## Kaggle links
-Checkpoint datasets are listed in the table above. Notebook links will be added after Phase 7.
+
+| Submission | Notebook (repo) | Kaggle notebook | Output dataset |
+|---|---|---|---|
+| Decoder | `A_decoder_only.ipynb` | [link](https://www.kaggle.com/code/rohitbatra2004/arch-a-p1) | [checkpoint](https://www.kaggle.com/datasets/rohitbatra2004/phase111) |
+| En_De | `B_Encoder_Decoder.ipynb` | [link](https://www.kaggle.com/code/rohitbatra2004/arch-2-p1) | [checkpoint](https://www.kaggle.com/datasets/rohitbatra2004/arch-data-1) |
+| Stacked LSTM | `C_StackedLSTM.ipynb` | [link](https://www.kaggle.com/code/rohitbatra2004/arch-c-p1) | [checkpoint](https://www.kaggle.com/datasets/rohitbatra2004/phase133) |
+| Temporal Con Net | `D_TCN.ipynb` | [link](https://www.kaggle.com/code/ruchikhemka/arch-d) | [checkpoint](https://www.kaggle.com/datasets/ruchikhemka/data-archd) |
+| Tokenizer + tokenized corpus | `tokenizer/` | — | [link](https://www.kaggle.com/datasets/rohitbatra2004/cs781-phase1-tokenized-corpus) |
+
+Every later notebook loads its backbone from these checkpoint datasets and the tokenizer from the tokenized-corpus dataset.

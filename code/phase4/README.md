@@ -114,4 +114,13 @@ Codabench P and R refer to **label 1**. This is inferred from the collapsed S1 v
 - **Task difficulty:** with the TF-IDF reference at ≈0.60–0.61 and frozen probes at ≈0.55–0.58, realistic Phase 4 scores are in the high 0.5s to mid 0.6s.
 
 ## Kaggle links
-Base checkpoints are the Phase-1 datasets (`code/phase1/README.md`); S5's teacher is read from `rohitji1/p4-s2-output-dataset`. Notebook links will be added after Phase 7.
+
+| Submission | Notebook (repo) | Kaggle notebook | Output dataset |
+|---|---|---|---|
+| S1: Decoder + LORMA (LP-FT) | `P4_S1_A_LORMA.ipynb` | [link](https://www.kaggle.com/code/rohitbatra2004/p4-s1-a-lorma90f8b65f27) | — (submission only) |
+| S2: Stacked LSTM + Layer-wise FT | `P4_S2_C_LSTM_LayerwiseFT.ipynb` | [link](https://www.kaggle.com/code/rohitji1/p4-s2-c-lstm-layerwiseftd4728d77ab) | [link](https://www.kaggle.com/datasets/rohitji1/p4-s2-output-dataset) |
+| S3: En_De (encoder) + BitFit | `P4_S3_B_Encoder_BitFit.ipynb` | [link](https://www.kaggle.com/code/rohitkbatra/p4-s3-b-encoder-bitfit) | — (submission only) |
+| S4: TCN + Adapters | `P4_S4_D_TCN_Adapters.ipynb` | [link](https://www.kaggle.com/code/ruchikhemka/p4-s4-d-tcn-adapters) | — (submission only) |
+| S5: Stacked LSTM + Know Distillation (S2 teacher -> 2-layer student) | `P4_S5_KD_S2Teacher_C2LayerStudent.ipynb` | [link](https://www.kaggle.com/code/rohitji1/p4-s5-kd-s2teacher-c2layerstudent) | — (submission only) |
+
+S5 reads its teacher from S2's dataset.
