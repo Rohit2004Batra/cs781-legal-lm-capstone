@@ -1,35 +1,35 @@
 date,phase,sub_id,notebook,base_model,technique,trainable_params,total_params,local_val,codabench_primary,codabench_secondary,on_leaderboard,notes
-2026-10-06,1,,A_decoder_only.ipynb,A Decoder-only,from-scratch pretraining,125028864,125028864,,0.7929,ROUGE-L 0.1731; BLEU-4 0.0208,,
-2026-10-06,1,,B_Encoder_Decoder.ipynb,B Encoder-Decoder,from-scratch pretraining,139263824,139263824,,0.8058,ROUGE-L 0.1615; BLEU-4 0.0145,,best Phase 1 BERTScore
-2026-10-06,1,,C_StackedLSTM.ipynb,C Stacked LSTM,from-scratch pretraining,103404880,103404880,,0.8020,ROUGE-L 0.1747; BLEU-4 0.0174,,
-2026-10-06,1,,D_TCN.ipynb,D TCN,from-scratch pretraining,114155520,114155520,,0.8052,ROUGE-L 0.1845; BLEU-4 0.0213,,best ROUGE-L and BLEU-4
-2026-10-11,2,,S1_Decoder_FullFineTuning.ipynb,A Decoder-only,full fine-tuning,,125028864,,0.1916,P 0.1958; R 0.2092,,
-2026-10-11,2,,S2_Encoder_Decoder_LORA.ipynb,B Encoder-Decoder,LoRA / expanded LoRA,,139263824,,0.1768,P 0.2113; R 0.1939,,
-2026-10-11,2,,S3_StackedLSTM_LORAM.ipynb,C Stacked LSTM,LORMA,,103404880,,0.4912,P 0.4693; R 0.5705,,best Phase 2
-2026-10-11,2,,S4_TCN_KnowDist.ipynb,D TCN,knowledge distillation,,114155520,,0.2527,P 0.2812; R 0.2637,,
-2026-10-12,3,,P3_S1_C_LSTM_LORMA.ipynb,C Stacked LSTM,LORMA r=8 + doc BiLSTM,3389453,106794333,0.4762 (dev; CL 0.3902 IT 0.4695),0.4024,P 0.412; R 0.416,yes,"sentence-only ablation 0.2347; 24.6 min; 2.23 GB"
-2026-10-12,3,,P3_S2_A_Decoder_LoRA.ipynb,A Decoder-only,LoRA r=8 q/k/v/out + doc BiLSTM,2963469,127992333,0.4402 (dev 13-label; present 0.5202),0.4825,P 0.535; R 0.540,yes,"sentence-only 0.2826; 38.5 min; 6.67 GB; best so far"
-2026-10-12,3,,P3_S3_B_Encoder_IA3.ipynb,B Encoder-Decoder (encoder),IA3 keys/values/FFN + doc BiLSTM,2401293,84116493,0.2188 (dev 13-label; present 0.2586),0.2364,P 0.308; R 0.252,yes,"sentence-only 0.1167; 24.8 min; 4.29 GB; underfits (loss 1.49)"
-2026-10-13,3,,P3_S4_D_TCN_PromptTuning.ipynb,D Dilated Residual TCN,Prompt tuning 20 tokens + doc BiLSTM,2656269,116811789,0.3289 (dev 13-label; present 0.3886),0.3391,P 0.363; R 0.347,yes,"sentence-only 0.2263; 35.0 min; 3.5 GB; after conv speed fix"
-2026-10-13,3,,P3_S7_A_LoRA_CRF_TrainDev.ipynb,A Decoder-only,LoRA attn+FFN + BiLSTM-CRF; Stage 2 train+dev,3700944,,0.4497 (Stage-1 dev 13-label Viterbi; argmax 0.4082),0.5019,P 0.537; R 0.494,yes,"best Phase 3; 75.6 min total; 8.95 GB; submission.zip = Stage 2"
-2026-10-13,3,,P3_S5_A_Prefix_CRF_TrainDev.ipynb,A Decoder-only,Prefix tuning 20x12 (MLP) + BiLSTM-CRF; Stage 2 train+dev,12238544,,0.4249 (Stage-1 dev 13-label Viterbi; argmax 0.4063),0.4527,P 0.499; R 0.467,yes,"88 min total; 5.12 GB; still improving at epoch 20"
-2026-10-13,3,,P3_S6_KD_S7Teacher_6LayerStudent.ipynb,A 6 of 12 layers (student),KD from S7 (T=2) + LoRA + BiLSTM-CRF; Stage 2 train+dev,3037392,85539024,0.4579 (student Stage-1 dev; teacher 0.4497),0.5184,P 0.582; R 0.502,yes,"best Phase 3; student beats teacher; 66.4% params; 1.51x faster; 4.64 GB"
-2026-10-19,4,,P4_S1_A_LORMA.ipynb,A Decoder-only,LORMA r=8 attn+FFN; last 2x510 chunks; standardised states,,,0.3452 (dev-clean; collapsed),0.3475,P 0.503; R 0.988,yes,"run 3; 67.7 min; collapse traced to backbone dropout during training"
-2026-10-19,4,,P4_S2_C_LSTM_LayerwiseFT.ipynb,C Stacked LSTM,Layer-wise FT: top LSTM layer + final norm; last 4 chunks at test,,,0.5615 (dev-clean last 4),0.5615,P 0.574; R 0.503,yes,"best Phase 4; 63.9 min"
-2026-10-19,4,,P4_S3_B_Encoder_BitFit.ipynb,B Encoder (6L),BitFit bias-only,,,0.5312 (dev-clean),0.4908,P 0.502; R 0.634,yes,"29.7 min; weak (spread 0.007)"
-2026-10-19,4,,P4_S4_D_TCN_Adapters.ipynb,D Dilated Residual TCN,Bottleneck adapters 1024-64-1024; last 4 chunks at test,,,0.5778 (dev-clean last 4),0.5269,P 0.534; R 0.478,yes,"45.2 min; learned only late in epoch 3"
-2026-10-19,4,,P4_S5_KD_S2Teacher_C2LayerStudent.ipynb,C 2 of 3 LSTM layers (student),KD from S2 (T=2) + layer-wise FT; last 8 chunks at test,,,0.6129 (dev-clean last 8; teacher 0.5615),0.5920,P 0.603; R 0.552,yes,"best Phase 4; student beats teacher; 49.5 min; no latency gain (22.8 vs 22.5 s)"
-2026-10-19,4,,P4_S1_A_LORMA.ipynb,A Decoder-only,LORMA r=8 attn+FFN with LP-FT (probe init then FT); last 2 chunks,,,0.6710 (dev-clean last 2; epoch 2),0.6732,P 0.710; R 0.597,yes,"v5; best Phase 4; 44.5 min training; v1-v4 collapsed"
-2026-10-20,4,1003655,P4_S1_A_LORMA.ipynb,A Decoder-only,LORMA r=8 attn+FFN with LP-FT; 4 epochs; last 2 chunks,,,0.6947 (dev-clean last 2; epoch 3 of 4),0.6795,P 0.662; R 0.744,yes,"final Phase 4 best; 91.1 min training; leaderboard"
-2026-10-22,5,,P5_S1_A_LORMA.ipynb,A Decoder-only,LORMA r=8 LP-FT; evidence chunks; per-statute thresholds,1634404,126663268,0.2979 (dev cross-fitted),0.3037,Micro-F1 0.399; subset 0.016,yes,"best Phase 5"
+2026-10-06,1,,A_decoder_only.ipynb,A Decoder-only,from-scratch pretraining,125028864,125028864,val PPL 20.30,0.7929,ROUGE-L 0.1731; BLEU-4 0.0208,,
+2026-10-06,1,,B_Encoder_Decoder.ipynb,B Encoder-Decoder,from-scratch pretraining,139263824,139263824,val PPL 31.82,0.8058,ROUGE-L 0.1615; BLEU-4 0.0145,,best Phase 1 BERTScore
+2026-10-06,1,,C_StackedLSTM.ipynb,C Stacked LSTM,from-scratch pretraining,103404880,103404880,val PPL 47.97,0.8020,ROUGE-L 0.1747; BLEU-4 0.0174,,
+2026-10-06,1,,D_TCN.ipynb,D TCN,from-scratch pretraining,114155520,114155520,val PPL 48.17,0.8052,ROUGE-L 0.1845; BLEU-4 0.0213,,best ROUGE-L and BLEU-4
+2026-10-11,2,,S1_Decoder_FullFineTuning.ipynb,A Decoder-only,full fine-tuning,125640440,125640440,0.2245,0.1916,P 0.1958; R 0.2092,,
+2026-10-11,2,,S2_Encoder_Decoder_LORA.ipynb,B Encoder-Decoder,LoRA / expanded LoRA,905464,82620664,0.1976,0.1768,P 0.2113; R 0.1939,,
+2026-10-11,2,,S3_StackedLSTM_LORAM.ipynb,C Stacked LSTM,LORMA,790520,104195400,0.4943,0.4912,P 0.4693; R 0.5705,,best Phase 2
+2026-10-11,2,,S4_TCN_KnowDist.ipynb,D TCN,knowledge distillation,38449400,89649400,0.2202,0.2527,P 0.2812; R 0.2637,,
+2026-10-12,3,,P3_S1_C_LSTM_LORMA.ipynb,C Stacked LSTM,LORMA r=8 + doc BiLSTM,3389453,106794333,0.4762 (dev; CL 0.3902 IT 0.4695),0.4024,P 0.412; R 0.416,yes,sentence-only ablation 0.2347; 24.6 min; 2.23 GB
+2026-10-12,3,,P3_S2_A_Decoder_LoRA.ipynb,A Decoder-only,LoRA r=8 q/k/v/out + doc BiLSTM,2963469,127992333,0.4402 (dev 13-label; present 0.5202),0.4825,P 0.535; R 0.540,yes,sentence-only 0.2826; 38.5 min; 6.67 GB; best so far
+2026-10-12,3,,P3_S3_B_Encoder_IA3.ipynb,B Encoder-Decoder (encoder),IA3 keys/values/FFN + doc BiLSTM,2401293,84116493,0.2188 (dev 13-label; present 0.2586),0.2364,P 0.308; R 0.252,yes,sentence-only 0.1167; 24.8 min; 4.29 GB; underfits (loss 1.49)
+2026-10-13,3,,P3_S4_D_TCN_PromptTuning.ipynb,D Dilated Residual TCN,Prompt tuning 20 tokens + doc BiLSTM,2656269,116811789,0.3289 (dev 13-label; present 0.3886),0.3391,P 0.363; R 0.347,yes,sentence-only 0.2263; 35.0 min; 3.5 GB; after conv speed fix
+2026-10-13,3,,P3_S7_A_LoRA_CRF_TrainDev.ipynb,A Decoder-only,LoRA attn+FFN + BiLSTM-CRF; Stage 2 train+dev,3700944,,0.4497 (Stage-1 dev 13-label Viterbi; argmax 0.4082),0.5019,P 0.537; R 0.494,yes,best Phase 3; 75.6 min total; 8.95 GB; submission.zip = Stage 2
+2026-10-13,3,,P3_S5_A_Prefix_CRF_TrainDev.ipynb,A Decoder-only,Prefix tuning 20x12 (MLP) + BiLSTM-CRF; Stage 2 train+dev,12238544,,0.4249 (Stage-1 dev 13-label Viterbi; argmax 0.4063),0.4527,P 0.499; R 0.467,yes,88 min total; 5.12 GB; still improving at epoch 20
+2026-10-13,3,,P3_S6_KD_S7Teacher_6LayerStudent.ipynb,A 6 of 12 layers (student),KD from S7 (T=2) + LoRA + BiLSTM-CRF; Stage 2 train+dev,3037392,85539024,0.4579 (student Stage-1 dev; teacher 0.4497),0.5184,P 0.582; R 0.502,yes,best Phase 3; student beats teacher; 66.4% params; 1.51x faster; 4.64 GB
+2026-10-19,4,,P4_S1_A_LORMA.ipynb,A Decoder-only,LORMA r=8 attn+FFN; last 2x510 chunks; standardised states,,,0.3452 (dev-clean; collapsed),0.3475,P 0.503; R 0.988,yes,run 3; 67.7 min; collapse traced to backbone dropout during training
+2026-10-19,4,,P4_S2_C_LSTM_LayerwiseFT.ipynb,C Stacked LSTM,Layer-wise FT: top LSTM layer + final norm; last 4 chunks at test,,,0.5615 (dev-clean last 4),0.5615,P 0.574; R 0.503,yes,best Phase 4; 63.9 min
+2026-10-19,4,,P4_S3_B_Encoder_BitFit.ipynb,B Encoder (6L),BitFit bias-only,,,0.5312 (dev-clean),0.4908,P 0.502; R 0.634,yes,29.7 min; weak (spread 0.007)
+2026-10-19,4,,P4_S4_D_TCN_Adapters.ipynb,D Dilated Residual TCN,Bottleneck adapters 1024-64-1024; last 4 chunks at test,,,0.5778 (dev-clean last 4),0.5269,P 0.534; R 0.478,yes,45.2 min; learned only late in epoch 3
+2026-10-19,4,,P4_S5_KD_S2Teacher_C2LayerStudent.ipynb,C 2 of 3 LSTM layers (student),KD from S2 (T=2) + layer-wise FT; last 8 chunks at test,,,0.6129 (dev-clean last 8; teacher 0.5615),0.5920,P 0.603; R 0.552,yes,best Phase 4; student beats teacher; 49.5 min; no latency gain (22.8 vs 22.5 s)
+2026-10-19,4,,P4_S1_A_LORMA.ipynb,A Decoder-only,LORMA r=8 attn+FFN with LP-FT (probe init then FT); last 2 chunks,,,0.6710 (dev-clean last 2; epoch 2),0.6732,P 0.710; R 0.597,yes,v5; best Phase 4; 44.5 min training; v1-v4 collapsed
+2026-10-20,4,1003655,P4_S1_A_LORMA.ipynb,A Decoder-only,LORMA r=8 attn+FFN with LP-FT; 4 epochs; last 2 chunks,,,0.6947 (dev-clean last 2; epoch 3 of 4),0.6795,P 0.662; R 0.744,yes,final Phase 4 best; 91.1 min training; leaderboard
+2026-10-22,5,,P5_S1_A_LORMA.ipynb,A Decoder-only,LORMA r=8 LP-FT; evidence chunks; per-statute thresholds,1634404,126663268,0.2979 (dev cross-fitted),0.3037,Micro-F1 0.399; subset 0.016,yes,best Phase 5
 2026-10-22,5,,P5_S2_C_LSTM_LayerwiseFT.ipynb,C Stacked LSTM,Layer-wise FT (top layer) LP-FT,13632100,103916980,0.2728 (dev cross-fitted),0.2632,Micro-F1 0.369; subset 0.012,yes,
 2026-10-22,5,,P5_S3_D_TCN_Adapters.ipynb,D Dilated Residual TCN,Bottleneck adapters LP-FT,1731300,115886820,0.2707 (dev cross-fitted),0.2730,Micro-F1 0.376; subset 0.014,yes,
-2026-10-22,5,,P5_S4_KD_Ensemble_to_BEncoder_LoRA.ipynb,B encoder (student),KD from S1+S2+S3 ensemble + LoRA,897124,82612324,0.2152 (dev cross-fitted),0.2196,Micro-F1 0.314; subset 0.003,yes,"KD; student keeps 69% of teacher"
+2026-10-22,5,,P5_S4_KD_Ensemble_to_BEncoder_LoRA.ipynb,B encoder (student),KD from S1+S2+S3 ensemble + LoRA,897124,82612324,0.2152 (dev cross-fitted),0.2196,Micro-F1 0.314; subset 0.003,yes,KD; student keeps 69% of teacher
 2026-10-29,6,,P6_S1_A_LORMA.ipynb,A Decoder-only,LORMA r=8; chunk-level prefix-LM summaries joined,,,,0.8287,ROUGE-1 0.4733; ROUGE-L 0.2349,yes,
 2026-10-29,6,,P6_S2_B_EncDec_LoRA.ipynb,B Encoder-Decoder,LoRA r=8 all enc/dec projections; seq2seq chunk summaries joined,,,,0.8033,ROUGE-1 0.3314; ROUGE-L 0.2043,yes,
 2026-10-29,6,,P6_S3_D_TCN_HoulsbyAdapters.ipynb,D Dilated Residual TCN,Houlsby adapters; prefix-LM chunk summaries joined,,,,0.8060,ROUGE-1 0.3509; ROUGE-L 0.2091,yes,
-2026-10-29,6,,P6_S4_KD_A_to_C_LSTM.ipynb,C Stacked LSTM (student),Word-level KD from S1 (A + LORMA) T=2,,,,0.8086,ROUGE-1 0.3582; ROUGE-L 0.2163,yes,"KD student beats S2/S3"
-2026-10-29,6,,P6_S1_tune_generation.ipynb,A Decoder-only,S1 weights; decoding min length 22% + repetition penalty 1.2,,,0.5212/0.2495 (val ROUGE-1/L),0.8354,ROUGE-1 0.5267; ROUGE-L 0.2403,yes,"best Phase 6; no retraining"
+2026-10-29,6,,P6_S4_KD_A_to_C_LSTM.ipynb,C Stacked LSTM (student),Word-level KD from S1 (A + LORMA) T=2,,,,0.8086,ROUGE-1 0.3582; ROUGE-L 0.2163,yes,KD student beats S2/S3
+2026-10-29,6,,P6_S1_tune_generation.ipynb,A Decoder-only,S1 weights; decoding min length 22% + repetition penalty 1.2,,,0.5212/0.2495 (val ROUGE-1/L),0.8354,ROUGE-1 0.5267; ROUGE-L 0.2403,yes,best Phase 6; no retraining
 2026-10-29,6,,P6_S2_tune_generation.ipynb,B Encoder-Decoder,S2 weights; tuned decoding,,,,0.8093,ROUGE-1 0.3726; ROUGE-L 0.2000,yes,
 2026-10-29,6,,P6_S3_tune_generation.ipynb,D Dilated Residual TCN,S3 weights; tuned decoding,,,,0.8142,ROUGE-1 0.3928; ROUGE-L 0.2018,yes,
 2026-10-29,6,,P6_S4_tune_generation.ipynb,C Stacked LSTM (KD student),S4 weights; tuned decoding,,,,0.8161,ROUGE-1 0.4345; ROUGE-L 0.1978,yes,
