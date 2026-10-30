@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Builds the Hello IITK deliverable:
 #   CS781-CP-<First>-<Last>-<RollNo>-report_code.zip
-#   ├── code/phase1/ ... code/phase7/  (+ common/)
+#   ├── code/phase1/ ... code/phase7/
 #   └── report/CS781-CP-<First>-<Last>-<RollNo>-report.pdf
 # with code/ and report/ directly at the zip root (no wrapper folder).
 #

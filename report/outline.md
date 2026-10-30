@@ -1,7 +1,7 @@
 # Report outline (fill progressively, compile in the official LaTeX template)
 
 Main body: **8 pages**. Appendix: unlimited, but every appendix item must be referenced from the main text.
-Final PDF name: `CS781-CP-<First>-<Last>-<RollNo>-report.pdf`
+Final PDF name: `CS781-CP-Rohit-Batra-261110054-report.pdf`
 
 ## Main body (~8 pages)
 1. **Abstract** — confidential in-house legal LM; 4 from-scratch architectures; 7 tasks; best results in one line each.

@@ -1,6 +1,6 @@
 # CS-781 Capstone — Legal Language Modelling Challenge
 
-**Author:** Rohit Batra · **Roll No:** <RollNo> · **Codabench:** `<x_rollno>`
+**Author:** Rohit Batra · **Roll No:** 261110054 · **Codabench:** `r_261110054`
 **Report:** [`report/`](report/) · **Experiment log:** [`docs/experiment_log.md`](docs/experiment_log.md) · **All submissions:** [`results/submissions.csv`](results/submissions.csv)
 
 A self-hosted legal language foundation trained **from scratch** on the official corpus (50M–300M params), then adapted to seven Indian legal NLP tasks. No pretrained weights or external APIs used at any stage.
@@ -11,8 +11,7 @@ A self-hosted legal language foundation trained **from scratch** on the official
 
 | Path | Contents |
 |---|---|
-| `code/common/` | Shared code reused across phases: tokenizer loading, the 4 model definitions, PEFT modules (LoRA, LORMA, …), KD utilities, data + eval helpers |
-| `code/phaseN/` | One folder per phase; one notebook per submission + phase README |
+| `code/phaseN/` | One folder per phase: one self-contained notebook per submission (model definition, PEFT module, training, prediction) + phase README with data analysis, results and analysis |
 | `results/` | `submissions.csv` (every Codabench run), per-phase metrics, plots |
 | `tokenizer/` | Shared 50K BPE tokenizer (`tokenizer.json`) used by every model |
 | `docs/` | Experiment log, design decisions, capstone rule notes |
@@ -56,13 +55,11 @@ Per-phase detail: see `code/phaseN/README.md`.
 
 ## Reproducing
 
-1. Attach the Kaggle datasets listed above to a Kaggle notebook (GPU: 2× T4).
-2. Clone this repo inside the notebook so `code/common` is importable:
-   ```python
-   !git clone https://github.com/Rohit2004Batra/cs781-legal-lm-capstone.git
-   import sys; sys.path.append("/kaggle/working/cs781-legal-lm-capstone/code")
-   ```
-3. Open `code/phaseN/<submission>.ipynb` and run all cells. Paths are set in the first cell.
+Every notebook is self-contained (no shared library to import) and runs top to bottom on Kaggle.
+1. Open `code/phaseN/<submission>.ipynb` in Kaggle (GPU T4; accelerator and expected time are in the notebook's first markdown cell).
+2. Add the inputs listed there: the phase's competition data, the Phase-1 checkpoint dataset of the base model (table above), `rohitbatra2004/cs781-phase1-tokenized-corpus` (tokenizer) and, for KD / tuning notebooks, the named output dataset of the earlier run.
+3. Add the Hugging Face token as the Kaggle secret `HF` (only needed where the notebook downloads the competition data).
+4. Run all. Checkpoints are saved under `/kaggle/working/<run>/checkpoints/`, and re-running resumes from `latest.pt`; the upload file (`prediction.json` / `submission.zip`) is written to `/kaggle/working/<run>/`.
 
 ---
 
