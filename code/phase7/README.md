@@ -1,9 +1,13 @@
 # Phase 7 — Prior Case Retrieval
 
-**Window:** <dates> · **Metric:** <primary> (secondary: <…>) · **Data:** `Phase_N_<…>/`
+**Window:** 3–7 Nov 2026 · **Metric:** Micro-F1@7 (secondary: Micro-P@7, Micro-R@7) · **Data:** `Phase_7_PCR/`
 
 ## Task & output format
-<one paragraph + the prediction.json shape>
+For each query case, rank the candidate cases from **that split's own pool** by legal relevance and return exactly 7 unique candidate ids, ordered from most to least relevant. Only the top 7 are scored, against the full gold set of relevant candidates, which may hold more or fewer than 7.
+
+```json
+{"0000021652": ["0000590455", "0000916840", "0001481813", "0001907199", "0000000987", "0000001566", "0000002886"], ...}
+```
 
 ## Data analysis
 - Sizes (train/dev/test), label distribution, document/sentence length stats

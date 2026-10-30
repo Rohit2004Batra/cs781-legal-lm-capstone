@@ -170,6 +170,25 @@
 - Explore: bi-encoder pooling, similarity functions, contrastive/pairwise/listwise losses, hard/in-batch negatives, chunked/hierarchical representations.
 - Techniques list: full FT, partial, QLoRA, **LORMA**, Prefix, Prompt, IA³, KD (teacher similarity scores / ranking signals).
 - **Metric:** Micro-F1@7 (secondary Micro-P@7, Micro-R@7). Gold set size is variable (not padded/truncated).
+- **File sizes:** train.json 33.2 MB, train_candidates.json 160 MB; dev.json 5.87 MB, dev_candidates.json 51.9 MB; test.json 9.34 MB, test_candidates.json 71.1 MB.
+- **Dev labels** may be used for model selection and local evaluation.
+- **Rules (§13.2):**
+  - At least 4 substantially different experiments, of which at least 3 use different FT/PEFT techniques from the list. LORMA is compulsory.
+  - At least 1 KD experiment, and it counts as one of the 4. The teacher must be a larger or stronger retrieval model and the student smaller. Report whether quality is kept while parameters, memory, training cost and inference cost go down.
+  - Hyperparameter-only changes (LR, batch size, LoRA rank, epochs, sequence length) do not count as new experiments. Pooling, similarity and ranking-objective choices alone do not count as techniques either.
+  - Every experiment starts from Phase-1 weights. No other pretrained model, weights or LLM/API.
+  - The technique list has no LoRA or adapters: full FT, partial/layer-wise FT, QLoRA, LORMA, prefix, prompt, IA³, KD.
+- **Expected analysis (§13.5):**
+  - techniques vs retrieval quality;
+  - transfer of Phase-1 representations;
+  - pooling and document representation;
+  - similarity and ranking objectives;
+  - hard and negative sampling;
+  - long documents;
+  - retrieval errors and failure patterns;
+  - KD effectiveness;
+  - quality vs size, memory and inference trade-off;
+  - why a technique that works on another legal task may not transfer to PCR.
 
 ### Phase 8 — TBA
 - Possibly submit best model for independent evaluation on an unseen task (e.g. QA). Details pending.
