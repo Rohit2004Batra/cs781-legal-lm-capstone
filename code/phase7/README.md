@@ -54,7 +54,7 @@ Reference rankers (no neural model, never submitted):
 |---|---|---|---|---|---|---|---|---|---|
 | S1 | `P7_S1_A_LORMA.ipynb` | A Decoder-only | LORMA bi-encoder (r=8, attn + FFN), LP-FT, InfoNCE with TF-IDF hard + in-batch negatives | | | | | | |
 | S2 | `P7_S2_C_LSTM_LayerwiseFT.ipynb` | C Stacked LSTM | Partial / layer-wise FT (top LSTM layer + final LayerNorm), same bi-encoder, LP-FT | | | | | | |
-| S3 | | | | | | | | | |
+| S3 | `P7_S3_D_TCN_PromptTuning.ipynb` | D Dilated Residual TCN | Prompt tuning (20 soft tokens per chunk), same bi-encoder, LP-FT | | | | | | |
 | S4 | | | | | | | | | |
 
 ## Method details
@@ -87,6 +87,11 @@ Reference rankers (no neural model, never submitted):
 - The embeddings and LSTM layers 0–1 are frozen. LSTM layer 2 and the final LayerNorm are fully trained, about 13M parameters, with LSTM dropout set to 0.
 - Training runs in train mode, because cuDNN needs it for the LSTM backward pass.
 - Same retrieval pipeline, loss and LP-FT steps as S1. No gradient checkpointing is needed.
+
+### S3 — Architecture D + prompt tuning
+- 20 soft-prompt vectors, initialised from embeddings of frequent tokens, are prepended to every chunk. The prompt positions are removed before pooling.
+- Only the prompt (20,480 numbers) and the projection are trained. Prompt LR is 3e-3, and the frozen TCN uses gradient checkpointing.
+- "Epoch 0" is the model with its initial prompt plus the trained projection. The pure Phase-1 TCN (no prompt) is also scored on dev, as the transfer reference.
 
 ## Analysis
 Answer each "Expected Analysis" bullet from the capstone doc for this phase:
