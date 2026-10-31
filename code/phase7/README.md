@@ -52,10 +52,20 @@ Reference rankers (no neural model, never submitted):
 
 | # | Notebook | Base model | Technique | Trainable / total params | Train time | Peak GPU mem | Local val | Codabench | Sub ID |
 |---|---|---|---|---|---|---|---|---|---|
-| S1 | `P7_S1_A_LORMA.ipynb` | A Decoder-only | LORMA bi-encoder (r=8, attn + FFN), LP-FT, InfoNCE with TF-IDF hard + in-batch negatives | | | | | | |
-| S2 | `P7_S2_C_LSTM_LayerwiseFT.ipynb` | C Stacked LSTM | Partial / layer-wise FT (top LSTM layer + final LayerNorm), same bi-encoder, LP-FT | | | | | | |
-| S3 | `P7_S3_D_TCN_PromptTuning.ipynb` | D Dilated Residual TCN | Prompt tuning (20 soft tokens per chunk), same bi-encoder, LP-FT | | | | | | |
-| S4 | | | | | | | | | |
+| S1 | `P7_S1_A_LORMA.ipynb` | A Decoder-only | LORMA bi-encoder (r=8, attn + FFN), LP-FT, InfoNCE with TF-IDF hard + in-batch negatives | 1.72M / 126.7M | 90.0 min (best ep 2) | 2.28 GB | **0.2690** (P 0.293, R 0.249) | pending | |
+| S2 | `P7_S2_C_LSTM_LayerwiseFT.ipynb` | C Stacked LSTM | Partial / layer-wise FT (top LSTM layer + final LayerNorm), same bi-encoder, LP-FT | 13.78M / 104.1M | 36.5 min (best ep 3) | 2.13 GB | 0.2168 (P 0.236, R 0.200) | pending | |
+| S3 | `P7_S3_D_TCN_PromptTuning.ipynb` | D Dilated Residual TCN | Prompt tuning (20 soft tokens per chunk), same bi-encoder, LP-FT | 0.55M / 114.7M | 49.2 min (best ep 1) | 1.70 GB | 0.1979 (P 0.216, R 0.183) | pending | |
+| S4 | `P7_S4_KD_S1Teacher_A6LayerStudent.ipynb` | A, 6 of 12 layers (student) | KD from S1 (listwise KL on similarities, T=2, + teacher-mined hard negatives) + LORMA | | | | | | |
+
+Local validation: dev Micro-F1@7 with the setting chosen on dev (first 8 + last 8 chunks, mean pooling, for S1–S3). Peak GPU memory is measured on GPU 0 of two.
+
+**Dev results so far (Micro-F1@7; TF-IDF reference 0.368, oracle 0.618)**
+
+| | Frozen Phase-1, no training (first 4 + last 4 / first 8 + last 8) | Step 1, projection only ("epoch 0") | Best fine-tuned (first 4 + last 4) | Best fine-tuned (first 8 + last 8, used for test) | Queries with no hit (of 118) | Hits shared with TF-IDF / union |
+|---|---|---|---|---|---|---|
+| S1 A + LORMA | 0.216 / 0.238 | 0.247 | 0.265 | **0.269** | 18 | 180 of 242 model hits; union 393 vs TF-IDF 331 |
+| S2 C + layer-wise FT | 0.100 / 0.112 | 0.186 | 0.198 | 0.217 | 34 | 152 of 195; union 374 |
+| S3 D + prompt tuning | 0.122 (no prompt, first 4 + last 4) | 0.172 | 0.178 | 0.198 | 37 | 133 of 178; union 376 |
 
 ## Method details
 ### Shared retrieval design (S1–S4)

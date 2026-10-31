@@ -179,3 +179,19 @@ This is the raw material for the report and the viva — record it the day you r
 - S1 tuning grid (60 val docs): best min length 0.22 + repetition penalty 1.2 → 0.532/0.257; all 150 val docs 0.521/0.250 (S1 0.461/0.245), length ×1.12, repeated trigrams 11.1%; test median 765 words; Codabench pending
 - S1-tuned Codabench: BERTScore **0.8354** (S1 0.8287), ROUGE-1 0.5267 (0.4733), ROUGE-L 0.2403 (0.2349) — decoding only
 - Tuned decoding: S2 0.8033→0.8093 (R1 0.331→0.373) · S3 0.8060→0.8142 (0.351→0.393) · S4 0.8086→0.8161 (0.358→0.435); ROUGE-L flat/slightly lower
+
+### 2026-10-31 · Phase 7 · Data analysis
+- 827 / 118 / 237 queries; pools 4,320 / 1,023 / 1,727. Every query is in its own pool and is excluded from its own ranking.
+- Relevant per query: median 4–5. Oracle Micro-F1@7 is 0.639 (train) / 0.618 (dev).
+- Dev references: BM25 full text 0.128, first 2,000 words 0.326, last 2,000 words 0.318; TF-IDF cosine 0.368 (Recall@100 0.668).
+
+### 2026-10-31 · Phase 7 · S1 (A + LORMA), S2 (C + layer-wise FT), S3 (D + prompt tuning)
+- **Common setup:** contrastive bi-encoder, LP-FT, InfoNCE with TF-IDF hard + in-batch negatives. Training uses 2 + 2 chunks; evaluation uses first + last chunks.
+- **S1:** frozen 0.238 → projection 0.247 → best epoch 2 0.265 (4 + 4 chunks) / **0.269** (8 + 8, used for test). 90 min, 1.72M trainable.
+- **S2:** frozen 0.112 → projection 0.186 → epoch 3 0.198 / 0.217. 36.5 min, 13.8M trainable.
+- **S3:** pure Phase-1 0.122 → projection 0.172 → epoch 1 0.178 / 0.198. 49 min, 0.55M trainable.
+- **Observations:**
+  - All three are below TF-IDF (0.368), but their hits are partly complementary to TF-IDF's: for S1, the union is 393 vs TF-IDF's 331, which is a case for a later hybrid.
+  - More chunks always help; mean pooling is better than max.
+  - Queries with a single relevant case are the weakest (P@7 0.05–0.08).
+- Codabench scores pending.
