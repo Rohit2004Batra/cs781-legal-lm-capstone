@@ -52,14 +52,36 @@ Reference rankers (no neural model, never submitted):
 
 | # | Notebook | Base model | Technique | Trainable / total params | Train time | Peak GPU mem | Local val | Codabench | Sub ID |
 |---|---|---|---|---|---|---|---|---|---|
-| S1 | | | | | | | | | |
+| S1 | `P7_S1_A_LORMA.ipynb` | A Decoder-only | LORMA bi-encoder (r=8, attn + FFN), LP-FT, InfoNCE with TF-IDF hard + in-batch negatives | | | | | | |
 | S2 | | | | | | | | | |
 | S3 | | | | | | | | | |
 | S4 | | | | | | | | | |
 
 ## Method details
-### S1 — <name>
-Architecture of head, pooling, context used, loss, key hyperparameters, why this choice.
+### Shared retrieval design (S1–S4)
+- **Bi-encoder:** each case is turned into one vector and ranked by cosine similarity to the query.
+- **Exclusions and output:** the query is always removed from its own ranking, and the top 7 are submitted.
+- **Case representation:**
+  - chunks of 510 BPE tokens, first 4 + last 4 per case;
+  - each chunk becomes [mean ; final state] of its token states, standardised per dimension with frozen Phase-1 statistics;
+  - then a linear projection to 256 dimensions and L2 normalisation;
+  - the case vector is the normalised mean of its chunk vectors.
+- **Loss:** InfoNCE with temperature 0.05. Each (query, relevant case) pair gets 2 hard negatives from the 50 most TF-IDF-similar non-relevant train cases, plus in-batch negatives. Other relevant cases of the same query are masked.
+- **LP-FT:**
+  - Step 1 trains the projection on cached frozen features ("epoch 0").
+  - Step 2 fine-tunes the adaptation together with the projection, using 2 + 2 chunks per case and gradient checkpointing.
+  - The best epoch on dev Micro-F1@7 is kept.
+- **Analysis cells:**
+  - frozen Phase-1 retrieval without training;
+  - chunk selection (first 1 / first 4 / last 4 / first 4 + last 4 / first 8 + last 8) × mean vs max pooling;
+  - dev score by number of relevant cases;
+  - queries with no hit;
+  - overlap of hits with the TF-IDF reference.
+
+### S1 — Architecture A + LORMA
+- LORMA (r 8, α 16) on q/k/v/out and fc1/fc2 of all 12 layers: `W_eff = (I + (α/r)·B·A)·W0`, with B = 0 at the start.
+- Adapter LR 1e-4, head LR 1e-4, 3 epochs, 4 pairs per step.
+- The final case vectors of all documents are saved for S4 (KD).
 
 ## Analysis
 Answer each "Expected Analysis" bullet from the capstone doc for this phase:
