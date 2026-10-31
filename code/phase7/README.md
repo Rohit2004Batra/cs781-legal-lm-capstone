@@ -53,7 +53,7 @@ Reference rankers (no neural model, never submitted):
 | # | Notebook | Base model | Technique | Trainable / total params | Train time | Peak GPU mem | Local val | Codabench | Sub ID |
 |---|---|---|---|---|---|---|---|---|---|
 | S1 | `P7_S1_A_LORMA.ipynb` | A Decoder-only | LORMA bi-encoder (r=8, attn + FFN), LP-FT, InfoNCE with TF-IDF hard + in-batch negatives | | | | | | |
-| S2 | | | | | | | | | |
+| S2 | `P7_S2_C_LSTM_LayerwiseFT.ipynb` | C Stacked LSTM | Partial / layer-wise FT (top LSTM layer + final LayerNorm), same bi-encoder, LP-FT | | | | | | |
 | S3 | | | | | | | | | |
 | S4 | | | | | | | | | |
 
@@ -82,6 +82,11 @@ Reference rankers (no neural model, never submitted):
 - LORMA (r 8, α 16) on q/k/v/out and fc1/fc2 of all 12 layers: `W_eff = (I + (α/r)·B·A)·W0`, with B = 0 at the start.
 - Adapter LR 1e-4, head LR 1e-4, 3 epochs, 4 pairs per step.
 - The final case vectors of all documents are saved for S4 (KD).
+
+### S2 — Architecture C + partial / layer-wise fine-tuning
+- The embeddings and LSTM layers 0–1 are frozen. LSTM layer 2 and the final LayerNorm are fully trained, about 13M parameters, with LSTM dropout set to 0.
+- Training runs in train mode, because cuDNN needs it for the LSTM backward pass.
+- Same retrieval pipeline, loss and LP-FT steps as S1. No gradient checkpointing is needed.
 
 ## Analysis
 Answer each "Expected Analysis" bullet from the capstone doc for this phase:
