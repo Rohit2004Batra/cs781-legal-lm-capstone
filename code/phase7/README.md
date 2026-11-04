@@ -52,10 +52,10 @@ Reference rankers (no neural model, never submitted):
 
 | # | Notebook | Base model | Technique | Trainable / total params | Train time | Peak GPU mem | Local val | Codabench | Sub ID |
 |---|---|---|---|---|---|---|---|---|---|
-| S1 | `P7_S1_A_LORMA.ipynb` | A Decoder-only | LORMA bi-encoder (r=8, attn + FFN), LP-FT, InfoNCE with TF-IDF hard + in-batch negatives | 1.72M / 126.7M | 90.0 min (best ep 2) | 2.28 GB | **0.2690** (P 0.293, R 0.249) | **0.2534** | 1031891 |
+| S1 | `P7_S1_A_LORMA.ipynb` | A Decoder-only | LORMA bi-encoder (r=8, attn + FFN), LP-FT, InfoNCE with TF-IDF hard + in-batch negatives | 1.72M / 126.7M | 90.0 min (best ep 2) | 2.28 GB | **0.2690** (P 0.293, R 0.249) | **0.2534** (P 0.259, R 0.248) | 1031891 |
 | S2 | `P7_S2_C_LSTM_LayerwiseFT.ipynb` | C Stacked LSTM | Partial / layer-wise FT (top LSTM layer + final LayerNorm), same bi-encoder, LP-FT | 13.78M / 104.1M | 36.5 min (best ep 3) | 2.13 GB | 0.2168 (P 0.236, R 0.200) | 0.1796 (P 0.183, R 0.176) | 1031907 |
 | S3 | `P7_S3_D_TCN_PromptTuning.ipynb` | D Dilated Residual TCN | Prompt tuning (20 soft tokens per chunk), same bi-encoder, LP-FT | 0.55M / 114.7M | 49.2 min (best ep 1) | 1.70 GB | 0.1979 (P 0.216, R 0.183) | 0.1807 (P 0.184, R 0.177) | 1031930 |
-| S4 | `P7_S4_KD_S1Teacher_A6LayerStudent.ipynb` | A, 6 of 12 layers (student) | KD from S1 (listwise KL on similarities, T=2, + teacher-mined hard negatives) + LORMA | 1.06M / 83.6M | 45.5 min (best ep 1) | see KD report | 0.2802 (P 0.305, R 0.259) | 0.2374 | 1031946 |
+| S4 | `P7_S4_KD_S1Teacher_A6LayerStudent.ipynb` | A, 6 of 12 layers (student) | KD from S1 (listwise KL on similarities, T=2, + teacher-mined hard negatives) + LORMA | 1.06M / 83.6M | 45.5 min (best ep 1) | see KD report | 0.2802 (P 0.305, R 0.259) | 0.2374 (P 0.242, R 0.233) | 1031946 |
 
 Local validation is dev Micro-F1@7, using the chunk setting chosen on dev: first 8 + last 8 chunks for S1–S3, first 4 + last 4 for S4, both with mean pooling. Peak GPU memory is measured on GPU 0 of two.
 
