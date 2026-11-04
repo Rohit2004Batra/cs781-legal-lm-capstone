@@ -189,7 +189,7 @@
   - KD effectiveness;
   - quality vs size, memory and inference trade-off;
   - why a technique that works on another legal task may not transfer to PCR.
-- **BM25 decision (user, 30 Oct):** for now, BM25 is used only as a reference baseline and to mine hard negatives for training. It is never part of a submitted ranking. A hybrid (neural + BM25) submission may be added later, as an extra beyond the required four, once all four are ready.
+- **BM25 decision (user, 30 Oct):** for now, BM25 is used only as a reference baseline and to mine hard negatives for training. It is never part of a submitted ranking. A hybrid (neural + BM25) submission may be added later, as an extra beyond the required four, once all four are ready. **Update (4 Nov):** the user kept the four submissions S1–S4. No hybrid submission was made.
 
 ### Phase 8 — TBA
 - Possibly submit best model for independent evaluation on an unseen task (e.g. QA). Details pending.
