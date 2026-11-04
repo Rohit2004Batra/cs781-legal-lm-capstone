@@ -6,3 +6,4 @@
 | 4 | Judgment prediction | Macro-F1 | S1 | A + LORMA, LP-FT, last 2 chunks | 0.6795 |
 | 5 | Statute identification | Macro-F1 | S1 | A + LORMA, LP-FT, per-statute thresholds | 0.3037 |
 | 6 | Summarization | BERTScore F1 | S1-tuned | A + LORMA, chunk summaries, tuned decoding | 0.8354 |
+| 7 | Prior case retrieval | Micro-F1@7 | S1 | A + LORMA contrastive bi-encoder, first 8 + last 8 chunks | 0.2534 |

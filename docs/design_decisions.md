@@ -127,3 +127,34 @@ report and your answers in the viva ("why LSTM?", "why this pooling?", "why this
 ### D-17 · Phase 6 · Word-level KD from A + LORMA into C
 - **Decision:** CE plus T²·KL over the full vocabulary at every summary token (T = 2). Chunks ≤640 tokens + summaries ≤360 tokens, to stay within C's 1,024 pretraining length.
 - **Evidence:** the student (0.8161) beat the directly adapted B and D models.
+
+## Phase 7
+### D-18 · Phase 7 · A bi-encoder over first + last chunks, mean-pooled, query excluded
+- **Context:** cases have a median of about 10 chunks of 512 tokens and up to 949; every query is inside its own pool; exactly 7 answers are scored.
+- **Decision:**
+  - one vector per case: the normalised mean of chunk vectors over the first k and last k chunks;
+  - cosine similarity, with the query removed from its own ranking.
+- **Evidence:**
+  - BM25 on the first or last 2,000 words beats the full text (0.33 / 0.32 vs 0.13).
+  - For S1, first 8 + last 8 (0.269) beats first 4 + last 4 (0.265) and first 4 (0.22).
+  - Mean pooling beats max pooling for every model.
+
+### D-19 · Phase 7 · Contrastive LP-FT with TF-IDF hard negatives
+- **Decision:**
+  - Step 1 trains a projection with InfoNCE on cached frozen features.
+  - Step 2 adapts the backbone (LORMA / layer-wise / prompt), with 2 TF-IDF hard negatives plus in-batch negatives.
+- **Evidence:** the projection step gave most of the gain (A 0.238 → 0.247, C 0.112 → 0.186); fine-tuning added 0.02–0.03.
+- **Consequence:** every run has a safe "epoch 0" fallback, and none collapsed.
+
+### D-20 · Phase 7 · KD student = every other layer of A, trained on the teacher's similarity distributions
+- **Options considered:** a B-encoder student (weakest features in Phases 3–5; it kept only 69% in Phase 5), or a half-depth A student (it beat its teacher in Phase 3).
+- **Decision:**
+  - a 6-layer A student with LORMA;
+  - listwise KL to S1's similarities (T = 2) plus InfoNCE;
+  - one teacher-mined hard negative per pair.
+- **Evidence:** 66% of the parameters, 1.99× faster encoding, 94% of the teacher's Codabench score, 104% of its dev score.
+
+### D-21 · Phase 7 · BM25 / TF-IDF only as a reference and for hard negatives
+- **Context:** the rules require the ranking to come from the adapted Phase-1 model.
+- **Decision:** word-matching scores are never part of a submitted ranking. A hybrid was considered, because the hits are complementary (union 393 vs 331), but not submitted.
+

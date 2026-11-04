@@ -41,10 +41,11 @@ PHASES = [
     ("P4 Judgment pred.", "Macro-F1", {"A": 0.6795, "B": 0.4908, "C": 0.5920, "D": 0.5269}),
     ("P5 Statutes", "Macro-F1", {"A": 0.3037, "B": 0.2196, "C": 0.2632, "D": 0.2730}),
     ("P6 Summarization", "BERTScore F1", {"A": 0.8354, "B": 0.8093, "C": 0.8161, "D": 0.8142}),
+    ("P7 Prior case retrieval", "Micro-F1@7", {"A": 0.2534, "C": 0.1796, "D": 0.1807}),
 ]
 
 # Figure 1 — small multiples: one panel per phase (each has its own metric), bars coloured by backbone.
-fig, axes = plt.subplots(2, 3, figsize=(9.2, 5.0))
+fig, axes = plt.subplots(2, 4, figsize=(12.0, 5.0))
 for ax, (title, metric, scores) in zip(axes.flat, PHASES):
     models = list(scores)
     vals = [scores[m] for m in models]
@@ -58,13 +59,14 @@ for ax, (title, metric, scores) in zip(axes.flat, PHASES):
     ax.set_title(title, loc="left")
     ax.set_ylabel(metric)
     ax.grid(axis="x", visible=False)
-for ax in axes[1]:
+for ax in axes[1][:3]:
     ax.set_xlabel("Phase-1 backbone")
+axes[1][3].axis("off")                                  # 7 phases in a 2 × 4 grid
 handles = [plt.Rectangle((0, 0), 1, 1, color=MODEL_COLOR[m]) for m in MODEL_COLOR]
 fig.legend(handles, [f"{m} = {MODEL_NAME[m]}" for m in MODEL_COLOR], loc="upper center", ncol=4, frameon=False,
            bbox_to_anchor=(0.5, 1.03))
 fig.text(0.5, -0.02, "Best Codabench score per backbone and phase (KD students under their own backbone; "
-         "Phase 6 with tuned decoding). BERTScore panels start at 0.75.", ha="center", fontsize=7.5, color=INK2)
+         "Phase 6 with tuned decoding; no B submission in Phase 7). BERTScore panels start at 0.75.", ha="center", fontsize=7.5, color=INK2)
 fig.tight_layout()
 save(fig, "fig1_scores_by_phase_and_backbone")
 
@@ -78,12 +80,14 @@ VAL_VS_TEST = {
                                           ("S4", "D", 0.5778, 0.5269), ("S5", "C", 0.6129, 0.5920)],
     "P5 Statutes (Macro-F1, cross-fitted)": [("S1", "A", 0.2981, 0.3037), ("S2", "C", 0.2728, 0.2632), ("S3", "D", 0.2707, 0.2730),
                                              ("S4", "B", 0.2152, 0.2196)],
+    "P7 Retrieval (Micro-F1@7)": [("S1", "A", 0.2690, 0.2534), ("S2", "C", 0.2168, 0.1796), ("S3", "D", 0.1979, 0.1807),
+                                  ("S4", "A", 0.2802, 0.2374)],
 }
 # Hand-placed labels where points crowd (offsets in points).
 LABEL_OFFSET = {("P2", "S1"): (5, 2, "left"), ("P2", "S2"): (-5, 2, "right"),
                 ("P3", "S6"): (-5, 1, "right"), ("P3", "S7"): (5, -2, "left"), ("P3", "S2"): (-5, -1, "right"),
                 ("P3", "S5"): (5, -4, "left")}
-fig, axes = plt.subplots(1, 4, figsize=(10.5, 2.9))
+fig, axes = plt.subplots(1, 5, figsize=(13.0, 2.9))
 for ax, (title, pts) in zip(axes, VAL_VS_TEST.items()):
     xs = [p[2] for p in pts] + [p[3] for p in pts]
     lo, hi = min(xs) - 0.03, max(xs) + 0.03
@@ -157,6 +161,7 @@ BEST = [
     ("4", "Judgment prediction", "Macro-F1", "S1", "A + LORMA, LP-FT, last 2 chunks", "0.6795"),
     ("5", "Statute identification", "Macro-F1", "S1", "A + LORMA, LP-FT, per-statute thresholds", "0.3037"),
     ("6", "Summarization", "BERTScore F1", "S1-tuned", "A + LORMA, chunk summaries, tuned decoding", "0.8354"),
+    ("7", "Prior case retrieval", "Micro-F1@7", "S1", "A + LORMA contrastive bi-encoder, first 8 + last 8 chunks", "0.2534"),
 ]
 md = ["| Phase | Task | Metric | Submission | Model + technique | Codabench |", "|---|---|---|---|---|---|"]
 md += [f"| {' | '.join(r)} |" for r in BEST]
@@ -168,13 +173,13 @@ tex += [r"\bottomrule", r"\end{tabular}"]
 
 ROWS = []
 for title, metric, scores in PHASES:
-    ROWS.append([title, metric] + [f"{scores[m]:.4f}" for m in "ABCD"])
+    ROWS.append([title, metric] + [f"{scores[m]:.4f}" if m in scores else "—" for m in "ABCD"])
 md = ["| Phase | Metric | A | B | C | D |", "|---|---|---|---|---|---|"] + [f"| {' | '.join(r)} |" for r in ROWS]
 (TAB / "scores_by_backbone.md").write_text("\n".join(md) + "\n")
 tex = [r"\begin{tabular}{llrrrr}", r"\toprule", r"Phase & Metric & A & B & C & D \\", r"\midrule"]
 for r in ROWS:
-    vals = [float(v) for v in r[2:]]
-    cells = [rf"\textbf{{{v}}}" if float(v) == max(vals) else v for v in r[2:]]
+    vals = [float(v) for v in r[2:] if v != "—"]
+    cells = [rf"\textbf{{{v}}}" if v != "—" and float(v) == max(vals) else ("--" if v == "—" else v) for v in r[2:]]
     tex.append(" & ".join(r[:2] + cells) + r" \\")
 tex += [r"\bottomrule", r"\end{tabular}"]
 (TAB / "scores_by_backbone.tex").write_text("\n".join(tex) + "\n")
