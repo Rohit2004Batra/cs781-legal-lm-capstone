@@ -195,3 +195,10 @@ This is the raw material for the report and the viva — record it the day you r
   - More chunks always help; mean pooling is better than max.
   - Queries with a single relevant case are the weakest (P@7 0.05–0.08).
 - Codabench scores pending.
+
+### 2026-11-04 · Phase 7 · Codabench scores
+- **S1** A + LORMA: **0.2534** (submission 1031891; dev 0.269)
+- **S2** C + layer-wise FT: 0.1796 (P 0.183, R 0.176; 1031907; dev 0.217)
+- **S3** D + prompt tuning: 0.1807 (P 0.184, R 0.177; 1031930; dev 0.198)
+- **S4** KD, 6-layer A student: 0.2374 (1031946); it keeps 94% of the teacher's test score
+- Dev was optimistic by 0.016–0.037; the ranking S1 > S4 > S3 ≈ S2 holds on test (S2 and S3 tie).

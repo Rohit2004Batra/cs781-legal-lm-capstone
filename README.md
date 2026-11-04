@@ -47,7 +47,7 @@ Tokenizer: byte-level BPE, vocab 50,000, special tokens `[PAD]`=0 `[UNK]`=1 `[BO
 | 4 | Judgment Prediction | Macro-F1 | 0.6795 | S1 | A (Decoder) + LORMA, LP-FT (linear-probe init → 4 epochs fine-tuning) |
 | 5 | Statute Identification | Macro-F1 | 0.3037 | S1 | A (Decoder) + LORMA, LP-FT, multi-label (per-statute thresholds) |
 | 6 | Summarization | BERTScore F1 | 0.8354 | S1-tuned | A (Decoder) + LORMA, chunk-level summaries; decoding: min length 22% + repetition penalty 1.2 |
-| 7 | Prior Case Retrieval | Micro-F1@7 | | | |
+| 7 | Prior Case Retrieval | Micro-F1@7 | 0.2534 | S1 | A (Decoder) + LORMA, contrastive bi-encoder (LP-FT, TF-IDF hard negatives), first 8 + last 8 chunks |
 
 Per-phase detail: see `code/phaseN/README.md`.
 
