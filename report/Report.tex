@@ -96,7 +96,7 @@ We met the minimum of four distinct submissions in every phase; each covers all 
 % ============================================================
 Client confidentiality rules out sending judgments to a hosted language model, so a firm needs models it trains and runs itself, built here from only the official \texttt{Exploration-Lab/CS-781-Capstone} data. Phase~1 pretrains a language model of 50M--300M parameters from scratch; its test is to continue 1,000 legal prompts of 512 words with 128 words, scored by BERTScore F1~\cite{zhang2020bertscore}, ROUGE-L~\cite{lin2004rouge} and BLEU~\cite{papineni2002bleu}. Phases 2--7 adapt that model to six tasks: character-level NER over 12 entity types (strict Macro-F1, so a span one character off is wrong); one of 13 rhetorical roles per sentence in Corporate Law and IT judgments (Macro-F1); binary judgment prediction (Macro-F1); multi-label identification of 100 statutes (Macro-F1 over statutes); headnote-style summarisation (BERTScore F1); and prior-case retrieval returning exactly seven candidates per query (Micro-F1@7). Every experiment starts from our own Phase-1 weights (no other pretrained model, external corpus or LLM API); each phase needs four distinct submissions including LORMA~\cite{bihany2025lorma} and knowledge distillation; compute was free Kaggle T4 GPUs.
 
-We asked whether four very different architectures trained on the same budget transfer differently, which parameter-efficient technique suits which backbone, how to represent documents of tens of thousands of tokens, how much decision calibration matters relative to training, and whether a distilled student keeps its teacher's quality. Phases were deliberately not pipelined into one another, so each stays a clean comparison of transfer from Phase~1.
+We asked whether different architectures transfer differently, which adaptation suits which backbone, how to represent very long documents, how much calibration matters, and whether distilled students keep their teachers' quality. Phases were not pipelined into one another, so each is a clean test of transfer from Phase~1.
 
 % ============================================================
 \section{Data Analysis and Preprocessing}
@@ -133,12 +133,16 @@ Phase-2 whitespace was never normalised: each 512-token window keeps a character
 \subsection{Phase-1 foundation model}
 We trained our own byte-level BPE tokenizer (vocabulary 50,000; 25M characters per source; \texttt{[PAD] [UNK] [BOS] [EOS]}), so legal tokens such as ``Section'' and ``appellant'' get their own entries.
 
-The four architectures are \A{}, a pre-LayerNorm decoder-only Transformer~\cite{vaswani2017attention} (12 layers, $d$=768, 12 heads, GELU FFN 3,072, learned positions, context 2,048, tied embeddings; 125.0M); \B{}, a 6+6-layer encoder--decoder with shared embeddings that predicts the next 1,024 tokens from the previous 1,024 (139.3M); \C{}, a three-layer LSTM~\cite{hochreiter1997lstm} with 1,280 units (103.4M); and \D{}, a TCN~\cite{bai2018tcn} of 10 residual blocks of weight-normalised causal convolutions with dilations 1--512 and a 4,093-token receptive field (114.2M). Each notebook asserts its parameter count lies within 50M--300M. All four were trained with next-token cross-entropy on 100M tokens, about 2.3\% of the corpus and the most the Kaggle sessions allowed. We used AdamW ($\beta=(0.9,0.95)$, weight decay 0.1), a learning rate of $3\times10^{-4}$ with cosine decay to $3\times10^{-5}$, 16K tokens per step and bf16, and selected checkpoints on the held-out loss.
+The four architectures are \A{}, a pre-LayerNorm decoder-only Transformer~\cite{vaswani2017attention} (12 layers, $d$=768, 12 heads, GELU FFN 3,072, learned positions, context 2,048, tied embeddings; 125.0M); \B{}, a 6+6-layer encoder--decoder with shared embeddings that predicts the next 1,024 tokens from the previous 1,024 (139.3M); \C{}, a three-layer LSTM~\cite{hochreiter1997lstm} with 1,280 units (103.4M); and \D{}, a TCN~\cite{bai2018tcn} of 10 residual blocks of weight-normalised causal convolutions with dilations 1--512 and a 4,093-token receptive field (114.2M).
 
-Decoding produced exactly 128 words, near-greedy for \A{} and \C{} (temperature 0.1, top-$p$ 0.95), temperature 0.7 with repetition penalty 1.1 for \B{}, and temperature 0.8 for \D{}. The untuned near-greedy setting made \A{} repetitive: \A{} had the lowest perplexity (20.3, against 31.8, 48.0 and 48.2) but the lowest BERTScore (0.793 against 0.806, 0.802 and 0.805).
+We chose four families on purpose, each with a different inductive bias under the same budget. The decoder matches the Phase-1 task (continue the text) and attends over its whole 2,048-token context. The encoder--decoder reads the prompt bidirectionally before generating, and its encoder is a natural feature extractor for the classification phases. The stacked LSTM runs in linear time with constant memory over documents of any length, and its step-by-step state suits local decisions such as entity boundaries. The TCN is fully parallel but has a fixed, very wide receptive field with no attention cost. Comparing attention, recurrence and convolution shows which bias transfers best to each task.
+
+Each notebook asserts its parameter count lies within 50M--300M. All four were trained with next-token cross-entropy on 100M tokens (2.3\% of the corpus, the most Kaggle sessions allowed). We used AdamW ($\beta=(0.9,0.95)$, weight decay 0.1), a learning rate of $3\times10^{-4}$ with cosine decay to $3\times10^{-5}$, 16K tokens per step and bf16, and selected checkpoints on the held-out loss.
+
+Decoding produced exactly 128 words, near-greedy for \A{} and \C{} (temperature 0.1, top-$p$ 0.95), temperature 0.7 with repetition penalty 1.1 for \B{}, and temperature 0.8 for \D{}. Untuned near-greedy decoding made \A{} repetitive: lowest perplexity (20.3 vs 31.8, 48.0, 48.2) but lowest BERTScore (0.793 vs 0.806, 0.802, 0.805).
 
 \subsection{Transfer protocol (Phases 2--6, and 7)}
-Every downstream model initialises from a Phase-1 checkpoint and adds a task head (Figure~\ref{fig:system}); backbone weights stay frozen unless the technique tunes them.
+Every downstream model starts from a Phase-1 checkpoint plus a task head (Figure~\ref{fig:system}).
 
 We implemented full and layer-wise fine-tuning, BitFit~\cite{benzaken2022bitfit}, LoRA~\cite{hu2022lora}, IA$^3$~\cite{liu2022ia3}, prefix~\cite{li2021prefix} and prompt tuning~\cite{lester2021prompt}, Houlsby and bottleneck adapters~\cite{houlsby2019adapters}, knowledge distillation (KD)~\cite{hinton2015distilling}, and LORMA~\cite{bihany2025lorma}, a multiplicative update $W_{\text{eff}}=(I+\tfrac{\alpha}{r}BA)\,W_0$ with $r$=8, $\alpha$=16 and $B$=0 at the start, applied to q/k/v/out/fc1/fc2 of \A{} and to the recurrent gate matrices of \C{}.
 
@@ -157,7 +161,7 @@ Two pieces of infrastructure carry across phases. First, \A's residual stream ha
 \end{figure}
 
 \subsection{Phase 2 --- Legal NER}
-Since almost no gold start lies on a token start, we built a character-level span head: each character receives its token's backbone state plus a 32-dimensional character embedding, a small convolution follows, and two heads give start and end probabilities for each label. Training uses binary cross-entropy with a positive weight capped at 30 (boundaries are 0.01--0.08\% of characters) and output biases initialised from label prevalence; 512-token windows overlap with stride 384 and are averaged in character space. Decoding pairs each start above its label's threshold with the best end within a per-label maximum length, then resolves overlaps; the thresholds and caps were tuned on validation. The best system, \C{} with LORMA on the recurrent weights, trains 0.79M parameters; an earlier additive adapter (not true LORMA) scored 0.372 against 0.392 before calibration.
+Since almost no gold start lies on a token start, we built a character-level span head: each character receives its token's backbone state plus a 32-dimensional character embedding, a small convolution follows, and two heads give start and end probabilities for each label. Training uses binary cross-entropy with a positive weight capped at 30 (boundaries are 0.01--0.08\% of characters) and output biases initialised from label prevalence; 512-token windows overlap with stride 384 and are averaged in character space. Decoding pairs each start above its label's threshold with the best end within a per-label length cap (both tuned on validation) and resolves overlaps. The best system, \C{} with LORMA on the recurrent weights, trains 0.79M parameters; an earlier additive adapter (not true LORMA) scored 0.372 against 0.392 before calibration.
 
 \subsection{Phase 3 --- Rhetorical role prediction}
 Each sentence ($\leq$128 tokens) is encoded into [mean; final state], projected to 512 dimensions with a domain embedding and relative position; a two-layer document BiLSTM over 128-sentence windows adds context, and from S7 on a linear-chain CRF~\cite{lafferty2001crf} decodes roles with Viterbi. CL and IT are trained jointly (40 documents each is too few) with class weights $(N/Kn_c)^{0.5}$ capped at 10.
@@ -185,7 +189,7 @@ The submitted systems are \B{} in Phase~1, \C{}+LORMA S3 with the calibrated dec
 \section{Experiments and Implementation Details}
 % ============================================================
 \subsection{Compute and training protocol}
-All runs used Kaggle: a single T4 in Phase~1 and two T4s with DataParallel later, 30--160 minutes per run, and 46 training notebooks in total. Notebooks save \texttt{latest.pt} (with optimiser, scheduler and sampler state) every few hundred steps, so a run interrupted by a session limit resumes exactly.
+All 46 training notebooks ran on Kaggle T4s (two with DataParallel after Phase~1), 30--160 minutes each. Notebooks save \texttt{latest.pt} (with optimiser, scheduler and sampler state) every few hundred steps, so a run interrupted by a session limit resumes exactly.
 
 Downstream runs used AdamW (weight decay 0.01), linear warm-up over 3--6\% of steps then linear decay, clipping at 1.0 and fp16; checkpoints were selected on the validation task metric (validation loss in Phase~6).
 
@@ -211,7 +215,7 @@ Decode/thr. & $T$0.7, rep 1.1 & thr.+caps & Viterbi & thr.\ 0.41 & per-statute &
 \subsection{Local evaluation}
 Every phase has a labelled held-out set that never touches test labels: 2\% of documents held out by hash (P1), 14 of 70 labelled documents (P2), the official dev sets (P3, P5, P7), dev minus the 1,517 test cases (P4), and 150 training documents (P6). Each notebook implements the official metric and validates \texttt{prediction.json} (all and only test IDs, exact types, per-phase constraints such as seven unique pool IDs excluding the query).
 
-Matching the official metric exactly mattered: in Phase~3, the first S1 score used scikit-learn's Macro-F1, which averages only over labels present, and reported 0.476 against Codabench's 0.402, the 13-label average we used from then on. Local and test scores agree closely (plot in \texttt{results/plots}): the cross-fitted Phase-5 estimates were within $\pm0.01$ of test for all four runs. The largest gaps came from the smallest sets (10 documents in Phase~3; 118 queries in Phase~7, where every run lost 0.02--0.04).
+Our first Phase-3 score used a Macro-F1 over present labels only (0.476 vs Codabench's 0.402), so we switched to the 13-label average. Local and test scores agree closely (plot in \texttt{results/plots}): the cross-fitted Phase-5 estimates were within $\pm0.01$ of test for all four runs. The largest gaps came from the smallest sets (10 documents in Phase~3; 118 queries in Phase~7, where every run lost 0.02--0.04).
 
 \subsection{Ablations and controlled comparisons}
 Table~\ref{tab:abl} changes one factor at a time. Document structure and decision calibration produced the largest effects, larger than switching adapters on a fixed backbone; prefix tuning lost to LoRA under an identical pipeline, and max pooling lost badly to mean pooling for retrieval.
@@ -234,7 +238,7 @@ Ph. & Change (all else fixed) & $\Delta$ & Ph. & Change (all else fixed) & $\Del
 % ============================================================
 \section{Results}
 % ============================================================
-Table~\ref{tab:main} gives every counted submission. In Phase~1, \B{} had ROUGE-L 0.162 and BLEU-4 0.015 (best: \D{}, 0.185 and 0.021). Official secondary metrics of the best runs were precision 0.662 / recall 0.744 (P4, label~1), Micro-F1 0.399 (P5), ROUGE-1 0.527 / ROUGE-L 0.240 (P6) and precision@7 0.259 / recall@7 0.248 (P7).
+Table~\ref{tab:main} gives every counted submission. In Phase~1, \B{} had ROUGE-L 0.162 and BLEU-4 0.015 (best: \D{}, 0.185 and 0.021). Best-run secondary metrics: P4 precision/recall 0.662/0.744, P5 Micro-F1 0.399, P6 ROUGE-1/L 0.527/0.240, P7 P@7/R@7 0.259/0.248.
 
 \begin{table}[t]
 \centering\scriptsize\setlength{\tabcolsep}{3pt}
@@ -259,41 +263,41 @@ Ph. & Submissions: backbone + technique & Local & \textbf{Test} \\\midrule
 
 \A{} had seen the longest contexts and had the lowest perplexity, so its states encode more of the document, and LORMA reshapes every projection slightly while touching about 1\% of the parameters. NER is the exception: a boundary decision is local and character-precise, and the LSTM state, adjusted multiplicatively on the recurrent gates, gave the sharpest boundaries.
 
-\textbf{Learning curves.} In the LP-FT runs (Figure~\ref{fig:curves}) the probe (epoch~0) recovers most of the score and fine-tuning adds 0.02--0.09 (Phase-1 per-step curves were not exported).
+\textbf{Learning curves.} In LP-FT runs (Figure~\ref{fig:curves}) the probe (epoch~0) recovers most of the score; fine-tuning adds 0.02--0.09.
 
 \begin{figure}[t]\centering
 \includegraphics[width=0.72\textwidth]{fig5_lpft_curves.pdf}
 \caption{Validation metric vs epoch for LP-FT runs; epoch 0 is the probe or projection alone.}\label{fig:curves}
 \end{figure}
 
-\textbf{Per-class results.} In NER (S3, validation) DATE (0.91), COURT (0.77) and STAT (0.73) are reliable; APP, AUTH, RESP, WIT and PREC (0.25--0.30) are weak. In rhetorical roles, Statute (0.80) and RulingByPresentCourt are easy, Issue and None stay weak, and ArgumentRespondent recall rose from 0.26 to 0.54 only with the CRF and KD. In statutes, per-statute F1 rises with training frequency, from 0.20 in the rarest quartile to 0.45 in the most frequent (rank correlation $\approx$0.6).
+\textbf{Per-class results.} In NER (S3, validation) DATE (0.91), COURT (0.77) and STAT (0.73) are reliable; APP, AUTH, RESP, WIT and PREC (0.25--0.30) are weak. In rhetorical roles, Statute (0.80) and RulingByPresentCourt are easy, Issue and None stay weak, and ArgumentRespondent recall rose from 0.26 to 0.54 only with the CRF and KD. Per-statute F1 rises with frequency, from 0.20 (rarest quartile) to 0.45 (most frequent).
 
 
 % ============================================================
 \section{Error Analysis and Discussion}\label{sec:err}
 % ============================================================
 \subsection{Phase-wise failure modes}
-\textbf{Phases 1--3.} Near-greedy \A{} fell into repetitive loops; all four models' continuations were legal in style but drifted from the prompt's topic, compressing BERTScore to a 0.013 range. In NER, the uncalibrated S3 model predicted spans up to 512 characters (gold spans are under 150) until per-label caps removed this; AUTH is over-predicted (436 false vs 105 true positives), and APP vs RESP hinges on a position relative to ``versus'' often far from the name. Rhetorical-role errors concentrate where the role depends on what the court later does with a sentence (is a precedent relied upon?) or on who is speaking, and on rare roles (Issue has 15 dev sentences).
+\textbf{Phases 1--3.} Near-greedy \A{} fell into repetitive loops; all four models' continuations were legal in style but drifted from the prompt's topic, compressing BERTScore to a 0.013 range. In NER, the uncalibrated S3 model predicted spans up to 512 characters (gold spans are under 150) until per-label caps removed this; AUTH is over-predicted (436 false vs 105 true positives), and APP vs RESP hinges on a position relative to ``versus'' often far from the name. Role errors concentrate where the role depends on what the court later does with a sentence or on who is speaking, and on rare roles.
 
 \textbf{Phase 4.} \A{} with LORMA collapsed to a constant prediction in four runs. Removing one suspected cause per run (attention pooling, outlier dimensions via standardisation, dropout in the frozen backbone) did not help: the cause was a randomly initialised head combined with multiplicative updates, which destroy the features before the head finds the weak signal. LP-FT fixed it (probe 0.606, fine-tuned 0.695). Remaining errors favour acceptance (recall 0.744, precision 0.662): with the ruling removed, partly allowed or remanded cases read like acceptances.
 
-\textbf{Phase 5.} The dominant error replaces a specific statute with a frequent generic one: statutes 12, 13 or 14 missed while 5 is predicted, and statutes 34, 77 or 61 missed while 97 is predicted (the first and third most frequent): with references masked, the model falls back on what is typical.
+\textbf{Phase 5.} The dominant error swaps a specific statute for a frequent generic one (12--14 missed for 5; 34, 61, 77 missed for 97): with references masked, the model falls back on what is typical.
 
-\textbf{Phases 6--7.} Chunk summaries are written independently, so facts are restated and the holding is sometimes split; longer tuned outputs raised ROUGE-1 and BERTScore but lowered ROUGE-L for three of four models. In retrieval, precision@7 is 0.05--0.08 for queries with one relevant case, and recall is only 0.09--0.13 for queries with 16 or more. S1 finds nothing for 18 of 118 dev queries. All four rankers stay below TF-IDF (0.368 on dev), but their hits differ: S1 and TF-IDF together find 393 relevant cases, against 331 for TF-IDF alone.
+\textbf{Phases 6--7.} Chunk summaries are written independently, so facts are restated and the holding is sometimes split; longer tuned outputs raised ROUGE-1 and BERTScore but lowered ROUGE-L for three of four models. In retrieval, P@7 is 0.05--0.08 for single-answer queries, and recall 0.09--0.13 for queries with 16+ answers. S1 finds nothing for 18 of 118 dev queries. All four rankers stay below TF-IDF (0.368 on dev), but their hits differ: S1 and TF-IDF together find 393 relevant cases, against 331 for TF-IDF alone.
 
 \subsection{What the metrics miss, limitations and next steps}
-BERTScore and ROUGE reward similarity to one reference, not whether the holding is stated correctly, so a fluent summary that misstates the outcome can still score well. Strict span-F1 gives no credit for a correctly typed entity one character off; Macro-F1 weights a statute seen 272 times as much as one seen 11,730 times; Micro-F1@7 caps any system at 0.62 on dev. The scores rank systems; they do not certify them.
+BERTScore and ROUGE reward similarity to one reference, so a fluent summary that misstates the holding can still score well. Strict span-F1 gives no credit for an entity one character off, and Micro-F1@7 caps any system at 0.62 on dev. The scores rank systems; they do not certify them.
 Each Phase-1 model saw 2.3\% of the corpus and three were still improving; fine-tuning was held to 2--4 epochs; there was no human legal evaluation.
 
-With more compute we would pretrain \A{} on 1B tokens with a 4,096 context; add contrastive pretraining on citing--cited pairs built from Phase-7 training labels only; use gradient caching to raise in-batch negatives from about 15 to several hundred; distil one \A-family student for all tasks; and mix neural and lexical scores, which the complementary hits support.
+Next we would pretrain \A{} on 1B tokens with a 4,096 context, add contrastive pretraining on citing--cited training pairs, raise in-batch negatives with gradient caching, and mix neural and lexical retrieval scores.
 
 \subsection{Surprising findings}
-The best-perplexity model had the worst Phase-1 BERTScore yet became the best downstream backbone. KD students beat their teachers in Phase~3 (0.518 vs 0.502 at 66\% of the parameters) and Phase~4 (0.592 vs 0.562), and in Phase~7 on dev (0.280 vs 0.269, $1.99\times$ faster): with little labelled data, soft targets regularise more than they compress. In Phase~6, two decoding numbers helped every model more than any architectural change.
+The best-perplexity model had the worst Phase-1 BERTScore yet became the best downstream backbone. KD students beat their teachers in Phase~3 (0.518 vs 0.502 at 66\% of the parameters) and Phase~4 (0.592 vs 0.562), and in Phase~7 on dev (0.280 vs 0.269, $1.99\times$ faster): with little labelled data, soft targets regularise more than they compress. In Phase~6, two decoding numbers beat any architectural change.
 
 % ============================================================
 \section{Conclusion}
 % ============================================================
-We delivered a self-hosted legal NLP stack (own tokenizer, four foundation models, six adapted task models on one 16~GB GPU). Reading the right part of each document, stable optimisation and decision calibration mattered more than the adapter choice; backbone quality, visible in frozen probes, decided most outcomes. A skeptical partner should not yet trust unreviewed summaries, cue-based judgment predictions, or a retriever below word matching.
+We delivered a self-hosted legal NLP stack on one 16~GB GPU. Document reading, stable optimisation and calibration mattered more than adapter choice, and backbone quality decided most outcomes. A skeptical partner should not yet trust unreviewed summaries, cue-based judgment predictions, or a retriever below word matching.
 
 % ============================================================
 \section*{LLM Usage Declaration}
