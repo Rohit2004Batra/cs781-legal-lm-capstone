@@ -1,0 +1,42 @@
+\begin{longtable}{@{}l p{4.1cm} p{5.2cm} r p{3.0cm} r l@{}}
+\toprule Ph. & Notebook & Base model / technique & Trainable & Local validation & Test & Kept \\ \midrule \endhead
+\bottomrule \endfoot
+1 & A\_decoder\_only & A Decoder-only: from-scratch pretraining & 125.03M & val PPL 20.30 & 0.7929 & yes \\
+1 & B\_Encoder\_Decoder & B Encoder-Decoder: from-scratch pretraining & 139.26M & val PPL 31.82 & 0.8058 & yes \\
+1 & C\_StackedLSTM & C Stacked LSTM: from-scratch pretraining & 103.40M & val PPL 47.97 & 0.8020 & yes \\
+1 & D\_TCN & D TCN: from-scratch pretraining & 114.16M & val PPL 48.17 & 0.8052 & yes \\
+2 & S1\_Decoder\_FullFineTuning & A Decoder-only: full fine-tuning & 125.64M & 0.2245 & 0.1916 & yes \\
+2 & S2\_Encoder\_Decoder\_LORA & B Encoder-Decoder: LoRA / expanded LoRA & 0.91M & 0.1976 & 0.1768 & yes \\
+2 & S3\_StackedLSTM\_LORAM & C Stacked LSTM: LORMA & 0.79M & 0.4943 & 0.4912 & yes \\
+2 & S4\_TCN\_KnowDist & D TCN: knowledge distillation & 38.45M & 0.2202 & 0.2527 & yes \\
+3 & P3\_S1\_C\_LSTM\_LORMA & C Stacked LSTM: LORMA r=8 + doc BiLSTM & 3.39M & 0.4762 (dev; CL 0.3902 IT 0.4695) & 0.4024 & yes \\
+3 & P3\_S2\_A\_Decoder\_LoRA & A Decoder-only: LoRA r=8 q/k/v/out + doc BiLSTM & 2.96M & 0.4402 (dev 13-label; present 0.5202) & 0.4825 & no \\
+3 & P3\_S3\_B\_Encoder\_IA3 & B Encoder-Decoder (encoder): IA3 keys/values/FFN + doc BiLSTM & 2.40M & 0.2188 (dev 13-label; present 0.2586) & 0.2364 & yes \\
+3 & P3\_S4\_D\_TCN\_PromptTuning & D Dilated Residual TCN: Prompt tuning 20 tokens + doc BiLSTM & 2.66M & 0.3289 (dev 13-label; present 0.3886) & 0.3391 & yes \\
+3 & P3\_S7\_A\_LoRA\_CRF\_TrainDev & A Decoder-only: LoRA attn+FFN + BiLSTM-CRF; Stage 2 train+dev & 3.70M & 0.4497 (Stage-1 dev 13-label Viterbi; argmax 0.4082) & 0.5019 & yes \\
+3 & P3\_S5\_A\_Prefix\_CRF\_TrainDev & A Decoder-only: Prefix tuning 20x12 (MLP) + BiLSTM-CRF; Stage 2 train+dev & 12.24M & 0.4249 (Stage-1 dev 13-label Viterbi; argmax 0.4063) & 0.4527 & no \\
+3 & P3\_S6\_KD\_S7Teacher\_6LayerStudent & A 6 of 12 layers (student): KD from S7 (T=2) + LoRA + BiLSTM-CRF; Stage 2 train+dev & 3.04M & 0.4579 (student Stage-1 dev; teacher 0.4497) & 0.5184 & yes \\
+4 & P4\_S1\_A\_LORMA & A Decoder-only: LORMA r=8 attn+FFN; last 2x510 chunks; standardised states & -- & 0.3452 (dev-clean; collapsed) & 0.3475 & no \\
+4 & P4\_S2\_C\_LSTM\_LayerwiseFT & C Stacked LSTM: Layer-wise FT: top LSTM layer + final norm; last 4 chunks at test & -- & 0.5615 (dev-clean last 4) & 0.5615 & yes \\
+4 & P4\_S3\_B\_Encoder\_BitFit & B Encoder (6L): BitFit bias-only & -- & 0.5312 (dev-clean) & 0.4908 & yes \\
+4 & P4\_S4\_D\_TCN\_Adapters & D Dilated Residual TCN: Bottleneck adapters 1024-64-1024; last 4 chunks at test & -- & 0.5778 (dev-clean last 4) & 0.5269 & yes \\
+4 & P4\_S5\_KD\_S2Teacher\_C2LayerStudent & C 2 of 3 LSTM layers (student): KD from S2 (T=2) + layer-wise FT; last 8 chunks at test & -- & 0.6129 (dev-clean last 8; teacher 0.5615) & 0.5920 & yes \\
+4 & P4\_S1\_A\_LORMA & A Decoder-only: LORMA r=8 attn+FFN with LP-FT (probe init then FT); last 2 chunks & -- & 0.6710 (dev-clean last 2; epoch 2) & 0.6732 & no \\
+4 & P4\_S1\_A\_LORMA & A Decoder-only: LORMA r=8 attn+FFN with LP-FT; 4 epochs; last 2 chunks & -- & 0.6947 (dev-clean last 2; epoch 3 of 4) & 0.6795 & yes \\
+5 & P5\_S1\_A\_LORMA & A Decoder-only: LORMA r=8 LP-FT; evidence chunks; per-statute thresholds & 1.63M & 0.2979 (dev cross-fitted) & 0.3037 & yes \\
+5 & P5\_S2\_C\_LSTM\_LayerwiseFT & C Stacked LSTM: Layer-wise FT (top layer) LP-FT & 13.63M & 0.2728 (dev cross-fitted) & 0.2632 & yes \\
+5 & P5\_S3\_D\_TCN\_Adapters & D Dilated Residual TCN: Bottleneck adapters LP-FT & 1.73M & 0.2707 (dev cross-fitted) & 0.2730 & yes \\
+5 & P5\_S4\_KD\_Ensemble\_to\_BEncoder\_LoRA & B encoder (student): KD from S1+S2+S3 ensemble + LoRA & 0.90M & 0.2152 (dev cross-fitted) & 0.2196 & yes \\
+6 & P6\_S1\_A\_LORMA & A Decoder-only: LORMA r=8; chunk-level prefix-LM summaries joined & -- & -- & 0.8287 & no \\
+6 & P6\_S2\_B\_EncDec\_LoRA & B Encoder-Decoder: LoRA r=8 all enc/dec projections; seq2seq chunk summaries joined & -- & -- & 0.8033 & no \\
+6 & P6\_S3\_D\_TCN\_HoulsbyAdapters & D Dilated Residual TCN: Houlsby adapters; prefix-LM chunk summaries joined & -- & -- & 0.8060 & no \\
+6 & P6\_S4\_KD\_A\_to\_C\_LSTM & C Stacked LSTM (student): Word-level KD from S1 (A + LORMA) T=2 & -- & -- & 0.8086 & no \\
+6 & P6\_S1\_tune\_generation & A Decoder-only: S1 weights; decoding min length 22\% + repetition penalty 1.2 & -- & 0.5212/0.2495 (val ROUGE-1/L) & 0.8354 & yes \\
+6 & P6\_S2\_tune\_generation & B Encoder-Decoder: S2 weights; tuned decoding & -- & -- & 0.8093 & yes \\
+6 & P6\_S3\_tune\_generation & D Dilated Residual TCN: S3 weights; tuned decoding & -- & -- & 0.8142 & yes \\
+6 & P6\_S4\_tune\_generation & C Stacked LSTM (KD student): S4 weights; tuned decoding & -- & -- & 0.8161 & yes \\
+7 & P7\_S1\_A\_LORMA & A Decoder-only: LORMA bi-encoder, LP-FT, InfoNCE + TF-IDF hard negatives & 1.72M & 0.2690 (dev Micro-F1@7) & 0.2534 & yes \\
+7 & P7\_S2\_C\_LSTM\_LayerwiseFT & C Stacked LSTM: Layer-wise FT (top LSTM layer + final norm) bi-encoder, LP-FT & 13.78M & 0.2168 (dev) & 0.1796 & yes \\
+7 & P7\_S3\_D\_TCN\_PromptTuning & D Dilated Residual TCN: Prompt tuning (20 soft tokens) bi-encoder, LP-FT & 0.55M & 0.1979 (dev) & 0.1807 & yes \\
+7 & P7\_S4\_KD\_S1Teacher\_A6LayerStudent & A 6 of 12 layers (student): KD from S1 (listwise KL + teacher-mined negatives) + LORMA & 1.06M & 0.2802 (dev; teacher 0.2690) & 0.2374 & yes \\
+\end{longtable}
