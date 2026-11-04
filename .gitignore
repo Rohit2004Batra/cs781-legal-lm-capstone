@@ -34,3 +34,13 @@ report/*.blg
 report/*.synctex.gz
 report/*.fdb_latexmk
 report/*.fls
+
+# LaTeX build files
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+report/Report.pdf

@@ -44,29 +44,25 @@ PHASES = [
     ("P7 Prior case retrieval", "Micro-F1@7", {"A": 0.2534, "C": 0.1796, "D": 0.1807}),
 ]
 
-# Figure 1 — small multiples: one panel per phase (each has its own metric), bars coloured by backbone.
-fig, axes = plt.subplots(2, 4, figsize=(12.0, 5.0))
+# Figure 1 — small multiples: one panel per phase (each has its own metric), bars coloured by backbone, one row.
+fig, axes = plt.subplots(1, 7, figsize=(13.0, 2.5))
 for ax, (title, metric, scores) in zip(axes.flat, PHASES):
     models = list(scores)
     vals = [scores[m] for m in models]
-    bars = ax.bar(models, vals, width=0.62, color=[MODEL_COLOR[m] for m in models], edgecolor="white", linewidth=1.5)
+    bars = ax.bar(models, vals, width=0.66, color=[MODEL_COLOR[m] for m in models], edgecolor="white", linewidth=1.2)
     best = max(vals)
     for b, v in zip(bars, vals):
-        ax.text(b.get_x() + b.get_width() / 2, v, f"{v:.3f}", ha="center", va="bottom", fontsize=7.5,
+        ax.text(b.get_x() + b.get_width() / 2, v, f"{v:.3f}".lstrip("0"), ha="center", va="bottom", fontsize=8,
                 color=INK if v == best else INK2, fontweight="bold" if v == best else "normal")
     lo = 0.75 if "BERTScore" in metric else 0.0
-    ax.set_ylim(lo, (best - lo) * 1.18 + lo)
-    ax.set_title(title, loc="left")
-    ax.set_ylabel(metric)
+    ax.set_ylim(lo, (best - lo) * 1.2 + lo)
+    ax.set_title(title.split(" ", 1)[0] + "\n" + title.split(" ", 1)[1], loc="left", fontsize=9)
+    ax.set_ylabel(metric, fontsize=8)
+    ax.tick_params(labelsize=8)
     ax.grid(axis="x", visible=False)
-for ax in axes[1][:3]:
-    ax.set_xlabel("Phase-1 backbone")
-axes[1][3].axis("off")                                  # 7 phases in a 2 × 4 grid
 handles = [plt.Rectangle((0, 0), 1, 1, color=MODEL_COLOR[m]) for m in MODEL_COLOR]
 fig.legend(handles, [f"{m} = {MODEL_NAME[m]}" for m in MODEL_COLOR], loc="upper center", ncol=4, frameon=False,
-           bbox_to_anchor=(0.5, 1.03))
-fig.text(0.5, -0.02, "Best Codabench score per backbone and phase (KD students under their own backbone; "
-         "Phase 6 with tuned decoding; no B submission in Phase 7). BERTScore panels start at 0.75.", ha="center", fontsize=7.5, color=INK2)
+           bbox_to_anchor=(0.5, 1.08), fontsize=9)
 fig.tight_layout()
 save(fig, "fig1_scores_by_phase_and_backbone")
 
@@ -185,3 +181,27 @@ tex += [r"\bottomrule", r"\end{tabular}"]
 (TAB / "scores_by_backbone.tex").write_text("\n".join(tex) + "\n")
 print("figures:", sorted(p.name for p in FIG.iterdir()))
 print("tables:", sorted(p.name for p in TAB.iterdir()))
+
+# Figure 5 — task metric vs epoch for the LP-FT runs (epoch 0 = linear probe / projection only), validation.
+CURVES = {
+    "P4 S1 A+LORMA (Macro-F1, dev-clean)": ("A", [0.6063, 0.6601, 0.6750, 0.6947, 0.6901]),
+    "P5 S1 A+LORMA (Macro-F1, cross-fitted)": ("A", [0.2705, 0.2844, 0.2951, 0.2979]),
+    "P5 S2 C layer-wise (Macro-F1)": ("C", [0.2414, 0.2519, 0.2635, 0.2728]),
+    "P7 S1 A+LORMA (Micro-F1@7, 4+4 chunks)": ("A", [0.2468, 0.2535, 0.2646, 0.2501]),
+    "P7 S2 C layer-wise (Micro-F1@7)": ("C", [0.1857, 0.1834, 0.1890, 0.1979]),
+}
+fig, axes = plt.subplots(1, 3, figsize=(10.5, 2.6))
+groups = [("P4", axes[0]), ("P5", axes[1]), ("P7", axes[2])]
+for prefix, ax in groups:
+    for name, (m, ys) in CURVES.items():
+        if not name.startswith(prefix):
+            continue
+        style = "-" if "A+" in name else "--"
+        ax.plot(range(len(ys)), ys, style, color=MODEL_COLOR[m], lw=2, marker="o", ms=4, label=name.split(" (")[0][3:])
+        ax.annotate(f"{ys[-1]:.3f}", (len(ys) - 1, ys[-1]), xytext=(4, 0), textcoords="offset points", fontsize=7, color=INK2, va="center")
+    ax.set_title({"P4": "P4 judgment (Macro-F1)", "P5": "P5 statutes (Macro-F1)", "P7": "P7 retrieval (Micro-F1@7)"}[prefix], loc="left", fontsize=8.5)
+    ax.set_xlabel("epoch (0 = probe only)")
+    ax.set_xticks(range(5 if prefix == "P4" else 4))
+    ax.legend(frameon=False, fontsize=7, loc="center right" if prefix == "P7" else "lower right")
+fig.tight_layout()
+save(fig, "fig5_lpft_curves")

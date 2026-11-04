@@ -1,6 +1,6 @@
 # Report outline (fill progressively, compile in the official LaTeX template)
 
-Main body: **8 pages**. Appendix: unlimited, but every appendix item must be referenced from the main text.
+Main body: **8 pages**. No appendix (only allowed with TA permission). The report is `Report.tex` in the official template.
 Final PDF name: `CS781-CP-Rohit-Batra-261110054-report.pdf`
 
 ## Main body (~8 pages)
