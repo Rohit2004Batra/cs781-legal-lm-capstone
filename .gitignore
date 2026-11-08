@@ -44,3 +44,4 @@ report/*.fls
 *.log
 *.out
 report/Report.pdf
+*.zip
